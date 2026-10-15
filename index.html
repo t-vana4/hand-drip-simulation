@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>余白の珈琲</title>
+  <title>ハンドドリップ ダイヤルイン</title>
   <meta name="description" content="湯量・湯温・抽出時間を動かして、一杯の味のバランスを探る。淹れた記録は端末に残る。" />
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png" />
@@ -12,8 +12,8 @@
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-title" content="ダイヤルイン" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-  <meta name="theme-color" content="#ece6db" media="(prefers-color-scheme: light)" />
-  <meta name="theme-color" content="#1b1713" media="(prefers-color-scheme: dark)" />
+  <meta name="color-scheme" content="only light" />
+  <meta name="theme-color" content="#ece6db" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="stylesheet" crossorigin="anonymous" href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Shippori+Mincho:wght@400;500;600&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" />
@@ -50,65 +50,8 @@
       --f-body: "Zen Kaku Gothic New", "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic", "Meiryo", "Noto Sans JP", "Noto Sans CJK JP", sans-serif;
       --f-mono: "DM Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
 
-      color-scheme: light;
-    }
-
-    @media (prefers-color-scheme: dark) {
-      :root:not([data-theme="light"]) {
-        --paper: #1b1713;
-        --paper-raised: #231e19;
-        --glass: #2a241f;
-        --ink: #ece3d7;
-        --ink-2: #bcae9f;
-        --ink-3: #928577;
-        --rule: #3c342c;
-        --rule-soft: #2e2721;
-        --roast: #d8c2a3;
-        --on-roast: #1b1713;
-        --crema: #c79a6b;
-        --on-crema: #1e1712;
-        --acid: #cfae5c;
-        --sweet: #93ae8a;
-        --bitter: #b0927c;
-        --body: #b38f72;
-        --clear: #97adb9;
-        --screen: #110e0b;
-        --screen-ink: #f2e8da;
-        --screen-dim: #93806d;
-        --screen-rule: rgba(242, 232, 218, 0.12);
-        --danger: #e09a7c;
-        --scrim: rgba(0, 0, 0, 0.55);
-        --grain: 0.25;
-        color-scheme: dark;
-      }
-    }
-
-    :root[data-theme="dark"] {
-      --paper: #1b1713;
-      --paper-raised: #231e19;
-      --glass: #2a241f;
-      --ink: #ece3d7;
-      --ink-2: #bcae9f;
-      --ink-3: #928577;
-      --rule: #3c342c;
-      --rule-soft: #2e2721;
-      --roast: #d8c2a3;
-      --on-roast: #1b1713;
-      --crema: #c79a6b;
-      --on-crema: #1e1712;
-      --acid: #cfae5c;
-      --sweet: #93ae8a;
-      --bitter: #b0927c;
-      --body: #b38f72;
-      --clear: #97adb9;
-      --screen: #110e0b;
-      --screen-ink: #f2e8da;
-      --screen-dim: #93806d;
-      --screen-rule: rgba(242, 232, 218, 0.12);
-      --danger: #e09a7c;
-      --scrim: rgba(0, 0, 0, 0.55);
-      --grain: 0.25;
-      color-scheme: dark;
+      /* 端末のダークモード設定にかかわらず、常にライト表示 */
+      color-scheme: only light;
     }
 
     *, *::before, *::after { box-sizing: border-box; }
@@ -1252,7 +1195,7 @@
         </svg>
         <div>
           <span class="en">Hand Drip · Dial-in Simulator</span>
-          <h1>余白の珈琲</h1>
+          <h1>ハンドドリップ ダイヤルイン</h1>
           <p class="lead">湯量と湯温、抽出時間。三つを少しずつ動かして、今日の豆に合う一杯を探す。</p>
         </div>
       </div>
