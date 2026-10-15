@@ -1,0 +1,2286 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>余白の珈琲</title>
+  <meta name="description" content="湯量・湯温・抽出時間を動かして、一杯の味のバランスを探る。淹れた記録は端末に残る。" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png" />
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="ダイヤルイン" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="theme-color" content="#ece6db" media="(prefers-color-scheme: light)" />
+  <meta name="theme-color" content="#1b1713" media="(prefers-color-scheme: dark)" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" crossorigin="anonymous" href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Shippori+Mincho:wght@400;500;600&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" />
+  <style>
+    /* Layout: バリスタのレシピカード（左）と、開いたテイスティングシート（右）。
+       箱ではなく罫線で区切り、焦点はドリップスケール型のタイマーひとつだけ。 */
+    :root {
+      --paper: #ece6db;
+      --paper-raised: #f7f3ec;
+      --glass: #faf7f1;
+      --ink: #2a221c;
+      --ink-2: #5b4f45;
+      --ink-3: #7f7266;
+      --rule: #d3c8b9;
+      --rule-soft: #e1d8cb;
+      --roast: #46311f;
+      --on-roast: #f7f1e8;
+      --crema: #a87a4d;
+      --on-crema: #1e1712;
+      --acid: #b08b2f;
+      --sweet: #637c5b;
+      --bitter: #4a382d;
+      --body: #8d6e56;
+      --clear: #6f8794;
+      --screen: #2a221c;
+      --screen-ink: #f2e8da;
+      --screen-dim: #a08d7a;
+      --screen-rule: rgba(242, 232, 218, 0.14);
+      --danger: #9a4630;
+      --scrim: rgba(36, 26, 18, 0.42);
+      --grain: 0.55;
+
+      --f-display: "Shippori Mincho", "Hiragino Mincho ProN", "Yu Mincho", "YuMincho", "Noto Serif JP", "Noto Serif CJK JP", serif;
+      --f-body: "Zen Kaku Gothic New", "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic", "Meiryo", "Noto Sans JP", "Noto Sans CJK JP", sans-serif;
+      --f-mono: "DM Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+
+      color-scheme: light;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        --paper: #1b1713;
+        --paper-raised: #231e19;
+        --glass: #2a241f;
+        --ink: #ece3d7;
+        --ink-2: #bcae9f;
+        --ink-3: #928577;
+        --rule: #3c342c;
+        --rule-soft: #2e2721;
+        --roast: #d8c2a3;
+        --on-roast: #1b1713;
+        --crema: #c79a6b;
+        --on-crema: #1e1712;
+        --acid: #cfae5c;
+        --sweet: #93ae8a;
+        --bitter: #b0927c;
+        --body: #b38f72;
+        --clear: #97adb9;
+        --screen: #110e0b;
+        --screen-ink: #f2e8da;
+        --screen-dim: #93806d;
+        --screen-rule: rgba(242, 232, 218, 0.12);
+        --danger: #e09a7c;
+        --scrim: rgba(0, 0, 0, 0.55);
+        --grain: 0.25;
+        color-scheme: dark;
+      }
+    }
+
+    :root[data-theme="dark"] {
+      --paper: #1b1713;
+      --paper-raised: #231e19;
+      --glass: #2a241f;
+      --ink: #ece3d7;
+      --ink-2: #bcae9f;
+      --ink-3: #928577;
+      --rule: #3c342c;
+      --rule-soft: #2e2721;
+      --roast: #d8c2a3;
+      --on-roast: #1b1713;
+      --crema: #c79a6b;
+      --on-crema: #1e1712;
+      --acid: #cfae5c;
+      --sweet: #93ae8a;
+      --bitter: #b0927c;
+      --body: #b38f72;
+      --clear: #97adb9;
+      --screen: #110e0b;
+      --screen-ink: #f2e8da;
+      --screen-dim: #93806d;
+      --screen-rule: rgba(242, 232, 218, 0.12);
+      --danger: #e09a7c;
+      --scrim: rgba(0, 0, 0, 0.55);
+      --grain: 0.25;
+      color-scheme: dark;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+
+    html { -webkit-text-size-adjust: 100%; }
+
+    body {
+      margin: 0;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: var(--f-body);
+      font-size: 0.9375rem;
+      line-height: 1.75;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* 紙の繊維感。ごく薄く。 */
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      opacity: var(--grain);
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.35 0 0 0 0 0.24 0 0 0 0 0.14 0 0 0 0.12 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    }
+
+    p, h1, h2, h3, .step-note { word-break: auto-phrase; text-wrap: pretty; }
+
+    button, input, select, textarea { font: inherit; color: inherit; }
+    button, label, input[type="range"] { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+    [hidden] { display: none !important; }
+    button { cursor: pointer; }
+    :focus-visible { outline: 2px solid var(--crema); outline-offset: 2px; }
+
+    .page {
+      position: relative;
+      z-index: 1;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding-block: calc(48px + env(safe-area-inset-top, 0px)) calc(40px + env(safe-area-inset-bottom, 0px));
+      padding-left: max(28px, env(safe-area-inset-left, 0px));
+      padding-right: max(28px, env(safe-area-inset-right, 0px));
+    }
+
+    h1, h2, h3 {
+      font-family: var(--f-display);
+      font-weight: 500;
+      font-feature-settings: "palt";
+      letter-spacing: 0.06em;
+      text-wrap: balance;
+      margin: 0;
+    }
+
+    .en {
+      font-family: var(--f-mono);
+      font-size: 0.6875rem;
+      font-weight: 400;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--ink-3);
+    }
+
+    .visually-hidden {
+      position: absolute !important;
+      width: 1px; height: 1px;
+      overflow: hidden;
+      clip: rect(0 0 0 0);
+      white-space: nowrap;
+    }
+
+    /* ---------- Masthead ---------- */
+    .masthead {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 28px 48px;
+      align-items: end;
+      padding-bottom: 32px;
+      margin-bottom: 40px;
+      border-bottom: 1px solid var(--rule);
+    }
+
+    .brand { display: flex; gap: 18px; align-items: flex-start; min-width: 0; }
+
+    .mark { flex: none; width: 46px; height: 46px; color: var(--ink); margin-top: 4px; }
+
+    .brand .en { display: block; margin-bottom: 6px; }
+
+    h1 {
+      font-size: clamp(1.55rem, 1.1rem + 1.6vw, 2.2rem);
+      line-height: 1.35;
+    }
+
+    .lead {
+      margin: 12px 0 0;
+      color: var(--ink-2);
+      max-width: 32em;
+    }
+
+    .presets { display: flex; flex-direction: column; gap: 8px; }
+
+    .presets-label { font-size: 0.75rem; color: var(--ink-3); letter-spacing: 0.08em; }
+
+    .preset-list {
+      display: grid;
+      grid-template-columns: repeat(4, auto);
+      gap: 1px;
+      background: var(--rule);
+      border: 1px solid var(--rule);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .preset {
+      appearance: none;
+      border: 0;
+      background: var(--paper-raised);
+      padding: 10px 18px 9px;
+      text-align: left;
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+      transition: background-color 0.2s ease, color 0.2s ease;
+    }
+
+    .preset:hover { background: var(--glass); }
+
+    .preset-name {
+      font-family: var(--f-display);
+      font-size: 0.9375rem;
+      font-weight: 500;
+      letter-spacing: 0.05em;
+    }
+
+    .preset-meta { font-family: var(--f-mono); font-size: 0.6875rem; color: var(--ink-3); white-space: nowrap; }
+
+    .preset[aria-pressed="true"] { background: var(--roast); color: var(--on-roast); }
+    .preset[aria-pressed="true"] .preset-meta { color: var(--on-roast); opacity: 0.72; }
+
+    /* ---------- Layout ---------- */
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: 56px;
+    }
+
+    @media (min-width: 1040px) {
+      .layout { grid-template-columns: 372px minmax(0, 1fr); gap: 56px; align-items: start; }
+    }
+
+    /* ---------- Recipe card ---------- */
+    .recipe {
+      background: var(--paper-raised);
+      border: 1px solid var(--rule);
+      border-radius: 4px;
+      padding: 28px 28px 30px;
+      display: flex;
+      flex-direction: column;
+      gap: 28px;
+      min-width: 0;
+    }
+
+    .recipe-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 16px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--rule);
+    }
+
+    .recipe-head h2 { font-size: 1.375rem; }
+    .recipe-head .en { display: block; margin-bottom: 2px; }
+
+    .ratio { text-align: right; }
+    .ratio-label { display: block; font-size: 0.6875rem; color: var(--ink-3); letter-spacing: 0.08em; }
+    .ratio-val {
+      font-family: var(--f-display);
+      font-size: 1.625rem;
+      font-weight: 500;
+      line-height: 1.2;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+
+    .beans { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.25fr); gap: 16px; }
+
+    .field { display: flex; flex-direction: column; gap: 8px; min-width: 0; margin: 0; padding: 0; border: 0; }
+
+    .field-label {
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: var(--ink-2);
+      letter-spacing: 0.06em;
+      padding: 0;
+    }
+
+    .stepper {
+      display: grid;
+      grid-template-columns: 32px minmax(0, 1fr) 32px;
+      align-items: stretch;
+      height: 40px;
+      border: 1px solid var(--rule);
+      border-radius: 3px;
+      background: var(--glass);
+    }
+
+    .stepper button {
+      appearance: none;
+      border: 0;
+      background: transparent;
+      color: var(--ink-2);
+      font-size: 1rem;
+      line-height: 1;
+    }
+
+    .stepper button:hover { color: var(--ink); background: var(--paper); }
+
+    .stepper-input { display: flex; align-items: baseline; justify-content: center; gap: 3px; border-inline: 1px solid var(--rule-soft); padding-top: 6px; }
+
+    .stepper input {
+      width: 2.4em;
+      border: 0;
+      background: transparent;
+      text-align: right;
+      font-family: var(--f-display);
+      font-size: 1.125rem;
+      font-weight: 500;
+      font-variant-numeric: tabular-nums;
+      padding: 0;
+      -moz-appearance: textfield;
+      appearance: textfield;
+    }
+
+    .stepper input::-webkit-outer-spin-button,
+    .stepper input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+
+    .stepper .unit { font-size: 0.75rem; color: var(--ink-3); }
+
+    .segmented {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      height: 40px;
+      border: 1px solid var(--rule);
+      border-radius: 3px;
+      overflow: hidden;
+      background: var(--glass);
+    }
+
+    .segmented input { position: absolute; opacity: 0; pointer-events: none; }
+
+    .segmented label {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8125rem;
+      color: var(--ink-2);
+      cursor: pointer;
+      border-left: 1px solid var(--rule-soft);
+      transition: background-color 0.2s ease, color 0.2s ease;
+      white-space: nowrap;
+    }
+
+    .segmented label:first-of-type { border-left: 0; }
+    .segmented label:hover { color: var(--ink); background: var(--paper); }
+    .segmented input:checked + label { background: var(--roast); color: var(--on-roast); }
+    .segmented input:focus-visible + label { outline: 2px solid var(--crema); outline-offset: -2px; }
+
+    /* Dials */
+    .dials { display: flex; flex-direction: column; gap: 26px; }
+
+    .dial { display: flex; flex-direction: column; gap: 4px; }
+
+    .dial-top { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+
+    .dial-top label { font-weight: 500; font-size: 0.9375rem; letter-spacing: 0.04em; }
+
+    .dial-value {
+      font-family: var(--f-display);
+      font-size: 1.75rem;
+      font-weight: 500;
+      line-height: 1.1;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+
+    .dial-value small {
+      font-family: var(--f-body);
+      font-size: 0.75rem;
+      font-weight: 400;
+      color: var(--ink-3);
+      margin-left: 4px;
+    }
+
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 24px;
+      margin: 2px 0 0;
+      background: transparent;
+      cursor: pointer;
+      --fill: 50%;
+    }
+
+    input[type="range"]:focus { outline: none; }
+
+    input[type="range"]::-webkit-slider-runnable-track {
+      height: 2px;
+      border-radius: 2px;
+      background: linear-gradient(to right, var(--roast) 0 var(--fill), var(--rule) var(--fill) 100%);
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 18px;
+      height: 18px;
+      margin-top: -8px;
+      border-radius: 50%;
+      background: var(--paper-raised);
+      border: 1.5px solid var(--roast);
+      transition: transform 0.15s ease;
+    }
+
+    input[type="range"]:hover::-webkit-slider-thumb { transform: scale(1.1); }
+    input[type="range"]:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 3px var(--paper-raised), 0 0 0 5px var(--crema); }
+
+    input[type="range"]::-moz-range-track { height: 2px; border-radius: 2px; background: var(--rule); }
+    input[type="range"]::-moz-range-progress { height: 2px; border-radius: 2px; background: var(--roast); }
+    input[type="range"]::-moz-range-thumb {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--paper-raised);
+      border: 1.5px solid var(--roast);
+    }
+    input[type="range"]:focus-visible::-moz-range-thumb { box-shadow: 0 0 0 3px var(--paper-raised), 0 0 0 5px var(--crema); }
+
+    /* 目盛り：つまみの中心位置に合わせて配置 */
+    .ticks {
+      position: relative;
+      height: 20px;
+      font-family: var(--f-mono);
+      font-size: 0.6875rem;
+      color: var(--ink-3);
+      margin-top: 2px;
+    }
+
+    .ticks span {
+      position: absolute;
+      top: 3px;
+      left: calc(9px + (100% - 18px) * var(--p));
+      transform: translateX(-50%);
+      white-space: nowrap;
+      line-height: 1.4;
+    }
+
+    .ticks span::before {
+      content: "";
+      position: absolute;
+      top: -5px;
+      left: 50%;
+      width: 1px;
+      height: 4px;
+      background: var(--rule);
+    }
+
+    .ticks .start { transform: translateX(-9px); }
+    .ticks .start::before { left: 9px; }
+    .ticks .end { transform: translateX(calc(-100% + 9px)); }
+    .ticks .end::before { left: auto; right: 9px; }
+
+    .ticks em {
+      font-family: var(--f-body);
+      font-style: normal;
+      margin-left: 4px;
+      letter-spacing: 0.04em;
+    }
+
+    .hint { margin: 6px 0 0; font-size: 0.8125rem; line-height: 1.7; color: var(--ink-2); }
+
+    .grind {
+      margin: 2px 0 0;
+      font-size: 0.8125rem;
+      color: var(--ink-2);
+      display: flex;
+      gap: 10px;
+      align-items: baseline;
+    }
+
+    .grind b { font-weight: 500; color: var(--ink); }
+
+    /* Feedback */
+    .feedback {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding-top: 24px;
+      border-top: 1px solid var(--rule);
+    }
+
+    .feedback h3 { font-size: 1.0625rem; }
+    .feedback-sub { margin: -6px 0 0; font-size: 0.8125rem; color: var(--ink-2); }
+
+    .feedback-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+
+    .fb {
+      appearance: none;
+      text-align: left;
+      background: transparent;
+      border: 1px solid var(--rule);
+      border-radius: 3px;
+      padding: 10px 12px 9px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      transition: border-color 0.2s ease, background-color 0.2s ease;
+    }
+
+    .fb:hover { border-color: var(--ink-3); background: var(--glass); }
+    .fb:active { background: var(--paper); }
+    .fb-name { font-size: 0.8125rem; font-weight: 500; line-height: 1.5; }
+    .fb-adj { display: flex; flex-wrap: wrap; gap: 0 10px; font-family: var(--f-mono); font-size: 0.6875rem; color: var(--ink-3); line-height: 1.5; }
+    .fb-adj span { white-space: nowrap; }
+
+    .nudge-log { margin: 0; min-height: 1.6em; font-size: 0.75rem; color: var(--ink-2); }
+
+    /* ---------- Results ---------- */
+    .results {
+      display: flex;
+      flex-direction: column;
+      gap: 56px;
+      min-width: 0;
+      container-type: inline-size;
+    }
+
+    .section-head {
+      display: flex;
+      align-items: baseline;
+      flex-wrap: wrap;
+      gap: 6px 14px;
+      padding-bottom: 12px;
+      margin-bottom: 24px;
+      border-bottom: 1px solid var(--rule);
+    }
+
+    .section-head h2 { font-size: 1.25rem; }
+
+    .section-head .aside {
+      margin-left: auto;
+      font-size: 0.75rem;
+      color: var(--ink-3);
+    }
+
+    .btn-line {
+      margin-left: auto;
+      appearance: none;
+      border: 1px solid var(--ink);
+      background: transparent;
+      color: var(--ink);
+      border-radius: 2px;
+      padding: 5px 14px;
+      font-size: 0.8125rem;
+      letter-spacing: 0.04em;
+      transition: background-color 0.2s ease, color 0.2s ease;
+    }
+
+    .btn-line:hover { background: var(--ink); color: var(--paper); }
+
+    /* State dots */
+    [data-state="ok"] { --state: var(--sweet); }
+    [data-state="bright"] { --state: var(--acid); }
+    [data-state="under"] { --state: var(--acid); }
+    [data-state="over"] { --state: var(--bitter); }
+    [data-state="light"] { --state: var(--clear); }
+    [data-state="strong"] { --state: var(--bitter); }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.75rem;
+      color: var(--ink-2);
+      white-space: nowrap;
+    }
+
+    .chip::before {
+      content: "";
+      flex: none;
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--state, var(--ink-3));
+    }
+
+    /* The cup */
+    .cup-grid {
+      display: grid;
+      grid-template-columns: 128px minmax(0, 1fr);
+      gap: 24px 28px;
+      align-items: center;
+    }
+
+    .carafe { margin: 0; width: 128px; }
+    .carafe svg { display: block; width: 100%; height: auto; overflow: visible; }
+
+    .yield { min-width: 0; }
+    .yield-label { font-size: 0.8125rem; color: var(--ink-2); letter-spacing: 0.04em; }
+    .yield-num {
+      display: block;
+      font-family: var(--f-display);
+      font-size: clamp(2.75rem, 2rem + 2.4vw, 3.5rem);
+      font-weight: 500;
+      line-height: 1.05;
+      font-variant-numeric: tabular-nums;
+      margin: 4px 0 8px;
+    }
+    .yield-num small { font-family: var(--f-body); font-size: 1rem; color: var(--ink-3); margin-left: 6px; font-weight: 400; }
+    .yield-calc { margin: 0; font-family: var(--f-mono); font-size: 0.75rem; line-height: 1.6; color: var(--ink-3); }
+
+    .specs { grid-column: 1 / -1; margin: 0; display: flex; flex-direction: column; }
+
+    .spec {
+      display: grid;
+      grid-template-columns: 5.6em auto minmax(0, 1fr);
+      align-items: baseline;
+      gap: 12px;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--rule-soft);
+    }
+
+    .spec:first-child { border-top: 1px solid var(--rule-soft); }
+    .spec dt { font-size: 0.8125rem; color: var(--ink-2); }
+    .spec dd { margin: 0; }
+
+    .spec-val {
+      font-family: var(--f-display);
+      font-size: 1.5rem;
+      font-weight: 500;
+      line-height: 1.2;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+
+    .spec-val small { font-family: var(--f-body); font-size: 0.75rem; color: var(--ink-3); margin-left: 3px; font-weight: 400; }
+    .spec dd:last-child { justify-self: end; text-align: right; }
+    .spec .chip { white-space: normal; }
+
+    @container (min-width: 620px) {
+      .cup-grid { grid-template-columns: 136px minmax(0, 0.7fr) minmax(0, 1.3fr); gap: 24px 36px; }
+      .carafe { width: 136px; }
+      .specs { grid-column: auto; }
+    }
+
+    .note {
+      grid-column: 1 / -1;
+      display: grid;
+      gap: 6px;
+      margin-top: 4px;
+      padding: 22px 24px 24px;
+      background: var(--paper-raised);
+      border: 1px solid var(--rule-soft);
+      border-radius: 4px;
+    }
+
+    .note .chip { font-size: 0.6875rem; letter-spacing: 0.12em; color: var(--ink-3); }
+
+    .note-title {
+      margin: 0;
+      font-family: var(--f-display);
+      font-size: 1.25rem;
+      font-weight: 500;
+      line-height: 1.55;
+      letter-spacing: 0.05em;
+      font-feature-settings: "palt";
+      text-wrap: balance;
+    }
+
+    .note-desc { margin: 0; font-size: 0.875rem; color: var(--ink-2); max-width: 46em; }
+
+    /* Balance + Chart */
+    .pair { display: grid; grid-template-columns: minmax(0, 1fr); gap: 56px; }
+
+    @container (min-width: 700px) {
+      .pair { grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr); gap: 44px; }
+    }
+
+    .spectrum { margin-bottom: 40px; }
+
+    .spectrum-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.75rem;
+      color: var(--ink-2);
+      margin-bottom: 14px;
+    }
+
+    .spectrum-track {
+      position: relative;
+      height: 6px;
+      border-radius: 3px;
+      background: linear-gradient(90deg, var(--acid), var(--sweet) 50%, var(--bitter));
+    }
+
+    .sweet-zone {
+      position: absolute;
+      top: -9px;
+      bottom: -9px;
+      left: 38%;
+      width: 24%;
+      border-left: 1px solid var(--sweet);
+      border-right: 1px solid var(--sweet);
+    }
+
+    .sweet-zone span {
+      position: absolute;
+      top: calc(100% + 5px);
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 0.6875rem;
+      color: var(--sweet);
+      white-space: nowrap;
+      letter-spacing: 0.06em;
+    }
+
+    .pointer {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--paper);
+      border: 2px solid var(--ink);
+      box-shadow: 0 0 0 3px var(--paper);
+      transform: translate(-50%, -50%);
+      transition: left 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .attrs { display: flex; flex-direction: column; gap: 13px; }
+
+    .attr {
+      display: grid;
+      grid-template-columns: 6.5em minmax(0, 1fr) 2.2em;
+      align-items: center;
+      gap: 12px;
+      font-size: 0.8125rem;
+    }
+
+    .attr-name { color: var(--ink-2); white-space: nowrap; }
+    .attr-track { height: 4px; border-radius: 2px; background: var(--rule-soft); overflow: hidden; }
+    .attr-track i { display: block; height: 100%; width: 50%; border-radius: 2px; background: var(--c); transition: width 0.4s ease; }
+    .attr-score { font-family: var(--f-mono); text-align: right; font-variant-numeric: tabular-nums; }
+
+    .chart-svg { display: block; width: 100%; height: auto; overflow: visible; }
+    .chart-svg text { font-family: var(--f-body); fill: var(--ink-3); }
+    .chart-svg .c-tick { font-family: var(--f-mono); font-size: 9.5px; }
+    .chart-svg .c-title { font-size: 10px; fill: var(--ink-2); letter-spacing: 0.04em; }
+    .chart-svg .c-zone { font-size: 10px; fill: var(--ink-2); letter-spacing: 0.06em; }
+    .chart-svg .c-zone-ok { fill: var(--sweet); }
+    .chart-svg .c-note { font-size: 9.5px; }
+    .c-grid { stroke: var(--rule-soft); stroke-width: 1; }
+    .c-axis { stroke: var(--rule); stroke-width: 1; }
+    .c-under { fill: var(--acid); fill-opacity: 0.09; }
+    .c-over { fill: var(--bitter); fill-opacity: 0.09; }
+    .c-ideal { fill: var(--sweet); fill-opacity: 0.13; stroke: var(--sweet); stroke-width: 1; }
+    .c-cross { stroke: var(--ink-3); stroke-width: 1; stroke-dasharray: 2 3; }
+    .c-halo { fill: var(--ink); fill-opacity: 0.12; }
+    .c-dot { fill: var(--ink); stroke: var(--paper); stroke-width: 2; }
+    .chart-ready .c-point { transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1); }
+
+    .caption { margin: 14px 0 0; font-size: 0.75rem; line-height: 1.7; color: var(--ink-3); }
+    .caption b { font-weight: 500; color: var(--ink-2); }
+
+    /* Pour schedule */
+    .pour-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 32px; }
+
+    @container (min-width: 680px) {
+      .pour-grid { grid-template-columns: minmax(0, 1.55fr) minmax(230px, 1fr); gap: 40px; align-items: start; }
+    }
+
+    .timeline { margin-bottom: 18px; }
+
+    .timeline-track {
+      position: relative;
+      display: flex;
+      height: 30px;
+      border-radius: 2px;
+      overflow: hidden;
+      background: var(--rule-soft);
+    }
+
+    .tl-seg {
+      position: relative;
+      z-index: 1;
+      flex: var(--d) 1 0;
+      min-width: 0;
+      display: flex;
+      align-items: center;
+      padding: 0 8px;
+      font-size: 0.6875rem;
+      color: var(--ink-2);
+      border-left: 2px solid var(--paper);
+      white-space: nowrap;
+      overflow: hidden;
+      transition: color 0.2s ease;
+    }
+
+    .tl-seg:first-child { border-left: 0; }
+    .tl-seg.is-active { color: var(--ink); font-weight: 700; }
+
+    .timeline-progress {
+      position: absolute;
+      inset: 0 auto 0 0;
+      width: 0;
+      z-index: 0;
+      background: var(--crema);
+      opacity: 0.32;
+      transition: width 1s linear;
+    }
+
+    .timeline-scale {
+      position: relative;
+      display: flex;
+      margin-top: 6px;
+      font-family: var(--f-mono);
+      font-size: 0.6875rem;
+      color: var(--ink-3);
+    }
+
+    .timeline-scale span { flex: var(--d) 1 0; min-width: 0; }
+    .timeline-scale .tl-end { position: absolute; right: 0; top: 0; }
+
+    .steps { list-style: none; margin: 0; padding: 0; }
+
+    .step {
+      display: grid;
+      grid-template-columns: 1.6rem minmax(0, 1fr) auto;
+      gap: 4px 14px;
+      align-items: baseline;
+      padding: 14px 10px;
+      border-bottom: 1px solid var(--rule-soft);
+      transition: background-color 0.3s ease;
+    }
+
+    .step:first-child { border-top: 1px solid var(--rule-soft); }
+
+    .step-no { font-family: var(--f-mono); font-size: 0.75rem; color: var(--ink-3); }
+    .step-main { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+    .step-title { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 12px; }
+    .step-name { font-family: var(--f-display); font-size: 1rem; font-weight: 500; letter-spacing: 0.05em; }
+    .step-time { font-family: var(--f-mono); font-size: 0.75rem; color: var(--ink-3); }
+    .step-note { font-size: 0.8125rem; line-height: 1.65; color: var(--ink-2); }
+
+    .step-pour {
+      text-align: right;
+      font-family: var(--f-mono);
+      font-size: 0.875rem;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+
+    .step-pour small { display: block; font-size: 0.6875rem; color: var(--ink-3); }
+
+    .step.is-active { background: color-mix(in srgb, var(--crema) 14%, transparent); }
+    .step.is-active .step-no { color: var(--crema); font-weight: 500; }
+
+    /* Drip scale (timer) */
+    .scale {
+      background: var(--screen);
+      color: var(--screen-ink);
+      border-radius: 10px;
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .scale-screen {
+      border: 1px solid var(--screen-rule);
+      border-radius: 6px;
+      padding: 14px 16px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .scale-caps, .scale-readout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: end;
+      gap: 12px;
+    }
+
+    .scale-cap {
+      font-family: var(--f-mono);
+      font-size: 0.625rem;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--screen-dim);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .scale-cap:last-child { justify-content: flex-end; }
+
+    .led {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--screen-dim);
+      opacity: 0.5;
+    }
+
+    .scale.is-running .led { background: var(--crema); opacity: 1; animation: pulse 1s ease-in-out infinite; }
+
+    @keyframes pulse { 50% { opacity: 0.35; } }
+
+    .scale-time {
+      font-family: var(--f-mono);
+      font-size: 2.75rem;
+      font-weight: 400;
+      line-height: 1;
+      letter-spacing: 0.02em;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .scale-weight {
+      font-family: var(--f-mono);
+      font-size: 1.375rem;
+      line-height: 1;
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+
+    .scale-weight small { font-size: 0.75rem; color: var(--screen-dim); margin-left: 3px; }
+
+    .scale-status {
+      margin: 0;
+      padding-top: 10px;
+      border-top: 1px solid var(--screen-rule);
+      min-height: 2.9em;
+      font-size: 0.8125rem;
+      line-height: 1.6;
+      color: var(--screen-ink);
+    }
+
+    .scale-btns { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; }
+
+    .btn-brew, .btn-reset {
+      appearance: none;
+      border-radius: 4px;
+      padding: 10px 14px;
+      font-size: 0.875rem;
+      letter-spacing: 0.06em;
+      transition: opacity 0.2s ease, background-color 0.2s ease;
+    }
+
+    .btn-brew { border: 0; background: var(--crema); color: var(--on-crema); font-weight: 700; }
+    .btn-brew:hover { opacity: 0.9; }
+    .btn-reset { border: 1px solid var(--screen-rule); background: transparent; color: var(--screen-ink); }
+    .btn-reset:hover { background: var(--screen-rule); }
+
+    .scale-foot { margin: 0; font-size: 0.6875rem; color: var(--screen-dim); }
+
+    /* Log */
+    .log-list { list-style: none; margin: 0; padding: 0; }
+
+    .log-item {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      padding: 18px 0 14px;
+      border-bottom: 1px solid var(--rule-soft);
+      min-width: 0;
+    }
+
+    .log-item:first-child { padding-top: 2px; }
+
+    .log-head {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 2px 16px;
+    }
+
+    .log-bean {
+      margin: 0;
+      min-width: 0;
+      font-family: var(--f-display);
+      font-size: 1.125rem;
+      font-weight: 500;
+      line-height: 1.5;
+      letter-spacing: 0.05em;
+      font-feature-settings: "palt";
+      overflow-wrap: anywhere;
+    }
+
+    .log-bean.is-empty { font-size: 1rem; color: var(--ink-3); }
+
+    .log-date { font-family: var(--f-mono); font-size: 0.75rem; color: var(--ink-3); white-space: nowrap; }
+
+    .log-recipe {
+      margin: 0;
+      font-family: var(--f-mono);
+      font-size: 0.8125rem;
+      font-variant-numeric: tabular-nums;
+      overflow-wrap: anywhere;
+    }
+
+    .log-recipe .arrow { color: var(--ink-3); margin: 0 0.5em; }
+    .log-recipe b { font-weight: 500; }
+
+    .log-result {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 2px 14px;
+      margin: 0;
+      font-size: 0.75rem;
+      color: var(--ink-2);
+    }
+
+    .log-result .nums { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+
+    .log-note {
+      margin: 4px 0 0;
+      padding-left: 12px;
+      border-left: 2px solid var(--rule);
+      max-width: 46em;
+      font-size: 0.875rem;
+      line-height: 1.75;
+      color: var(--ink-2);
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+
+    .log-actions { display: flex; flex-wrap: wrap; gap: 0 20px; margin-top: 2px; }
+
+    .link-btn {
+      appearance: none;
+      border: 0;
+      background: none;
+      padding: 6px 0;
+      font-size: 0.8125rem;
+      color: var(--ink-2);
+      text-decoration: underline;
+      text-decoration-color: var(--rule);
+      text-underline-offset: 4px;
+      transition: color 0.2s ease, text-decoration-color 0.2s ease;
+    }
+
+    .link-btn:hover { color: var(--ink); text-decoration-color: var(--ink-3); }
+    .link-btn.is-armed { color: var(--danger); text-decoration-color: var(--danger); }
+
+    .log-foot { margin: 14px 0 0; font-size: 0.75rem; color: var(--ink-3); }
+
+    .empty {
+      margin: 0;
+      padding: 28px 20px;
+      text-align: center;
+      font-size: 0.875rem;
+      color: var(--ink-2);
+      border: 1px dashed var(--rule);
+      border-radius: 4px;
+    }
+
+    .colophon {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 8px 24px;
+      margin-top: 72px;
+      padding-top: 18px;
+      border-top: 1px solid var(--rule);
+      font-size: 0.75rem;
+      color: var(--ink-3);
+    }
+
+    .colophon p { margin: 0; }
+
+    /* Entry dialog */
+    .entry {
+      width: min(460px, calc(100vw - 32px));
+      max-height: calc(100dvh - 32px);
+      padding: 0;
+      border: 1px solid var(--rule);
+      border-radius: 6px;
+      background: var(--paper-raised);
+      color: var(--ink);
+      box-shadow: 0 28px 60px -24px var(--scrim);
+    }
+
+    .entry::backdrop { background: rgba(36, 26, 18, 0.42); }
+
+    .entry form { display: flex; flex-direction: column; gap: 18px; padding: 24px 24px 20px; }
+
+    .entry-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 12px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--rule);
+    }
+
+    .entry-head h2 { font-size: 1.25rem; outline: none; }
+    .entry-date { font-family: var(--f-mono); font-size: 0.75rem; color: var(--ink-3); white-space: nowrap; }
+
+    .entry-summary {
+      margin: 0;
+      font-family: var(--f-mono);
+      font-size: 0.8125rem;
+      line-height: 1.8;
+      color: var(--ink-2);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .entry-summary b { font-weight: 500; color: var(--ink); }
+    .entry-summary .arrow { color: var(--ink-3); margin: 0 0.5em; }
+
+    .text-input, .text-area {
+      width: 100%;
+      border: 1px solid var(--rule);
+      border-radius: 3px;
+      background: var(--glass);
+      padding: 10px 12px;
+      font-size: 16px;
+      line-height: 1.6;
+      color: var(--ink);
+    }
+
+    .text-area { resize: vertical; min-height: 6.5em; }
+    .text-input::placeholder, .text-area::placeholder { color: var(--ink-3); }
+    .text-input:focus, .text-area:focus { outline: none; border-color: var(--ink-3); box-shadow: 0 0 0 3px color-mix(in srgb, var(--crema) 28%, transparent); }
+
+    .entry-btns { display: flex; justify-content: flex-end; gap: 8px; padding-top: 4px; }
+
+    .btn-solid, .btn-ghost {
+      appearance: none;
+      border-radius: 3px;
+      padding: 10px 18px;
+      font-size: 0.875rem;
+      letter-spacing: 0.06em;
+      transition: opacity 0.2s ease, background-color 0.2s ease;
+    }
+
+    .btn-solid { border: 0; background: var(--roast); color: var(--on-roast); padding-inline: 24px; }
+    .btn-solid:hover { opacity: 0.9; }
+    .btn-ghost { border: 1px solid var(--rule); background: transparent; color: var(--ink-2); }
+    .btn-ghost:hover { background: var(--glass); color: var(--ink); }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+      z-index: 30;
+      max-width: calc(100vw - 32px);
+      padding: 10px 18px;
+      border-radius: 999px;
+      background: var(--ink);
+      color: var(--paper);
+      font-size: 0.8125rem;
+      line-height: 1.5;
+      text-align: center;
+      opacity: 0;
+      pointer-events: none;
+      transform: translate(-50%, 10px);
+      transition: opacity 0.25s ease, transform 0.25s ease;
+    }
+
+    .toast.is-on { opacity: 1; transform: translate(-50%, 0); }
+
+    /* Carafe drawing */
+    .cf-glass { fill: var(--glass); }
+    .cf-line { fill: none; stroke: var(--ink-2); stroke-width: 1.5; stroke-linejoin: round; stroke-linecap: round; }
+    .cf-thin { fill: none; stroke: var(--ink-3); stroke-width: 1; stroke-linecap: round; }
+    .cf-bed { fill: var(--roast); fill-opacity: 0.35; }
+    .cf-tick { stroke: var(--ink-3); stroke-width: 1; }
+    .cf-tick-label { font-family: var(--f-mono); font-size: 9px; fill: var(--ink-3); }
+    .cf-crema { fill: var(--crema); fill-opacity: 0.7; }
+    #liquid { transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1); }
+    #liquidBody, .drop { transition: fill 0.4s ease; }
+    .drop { opacity: 0; }
+    .carafe.is-brewing .drop { animation: drip 1.3s ease-in infinite; }
+
+    @keyframes drip {
+      0% { transform: translateY(0); opacity: 0; }
+      12% { opacity: 1; }
+      88% { opacity: 1; }
+      100% { transform: translateY(var(--fall, 60px)); opacity: 0; }
+    }
+
+    /* ---------- Narrow screens ---------- */
+    @media (max-width: 860px) {
+      .masthead { grid-template-columns: minmax(0, 1fr); }
+      .preset-list { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    }
+
+    @media (max-width: 560px) {
+      .page {
+        padding-block: calc(28px + env(safe-area-inset-top, 0px)) calc(32px + env(safe-area-inset-bottom, 0px));
+        padding-left: max(16px, env(safe-area-inset-left, 0px));
+        padding-right: max(16px, env(safe-area-inset-right, 0px));
+      }
+      .brand { gap: 14px; }
+      .mark { width: 38px; height: 38px; }
+      .preset-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .recipe { padding: 22px 18px 24px; }
+      .beans { grid-template-columns: minmax(0, 1fr); }
+      .cup-grid { grid-template-columns: 104px minmax(0, 1fr); gap: 20px; }
+      .carafe { width: 104px; }
+      .note { padding: 18px 18px 20px; }
+      .layout, .results { gap: 48px; }
+      .entry { margin: max(16px, env(safe-area-inset-top, 0px)) auto auto; }
+      .entry form { padding: 20px 18px 18px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { transition: none !important; animation: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header class="masthead">
+      <div class="brand">
+        <svg class="mark" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M8 8.5h32" />
+          <path d="M10 8.5l9 12.5h10l9-12.5" />
+          <path d="M15 21h18" />
+          <path d="M19 24.5h10v2.5c0 2.5 7 3.5 7 9v6.5a2 2 0 0 1-2 2H14a2 2 0 0 1-2-2V36c0-5.5 7-6.5 7-9z" />
+          <path d="M14 38.5h20" opacity="0.45" />
+        </svg>
+        <div>
+          <span class="en">Hand Drip · Dial-in Simulator</span>
+          <h1>余白の珈琲</h1>
+          <p class="lead">湯量と湯温、抽出時間。三つを少しずつ動かして、今日の豆に合う一杯を探す。</p>
+        </div>
+      </div>
+
+      <div class="presets">
+        <span class="presets-label" id="presetsLabel">基本のレシピから始める</span>
+        <div class="preset-list" role="group" aria-labelledby="presetsLabel">
+          <button type="button" class="preset" data-preset="light" aria-pressed="false" title="浅煎り・フルーティに">
+            <span class="preset-name">浅煎り</span><span class="preset-meta">93℃ · 1:16.7</span>
+          </button>
+          <button type="button" class="preset" data-preset="balanced" aria-pressed="true" title="中煎り・バランスよく">
+            <span class="preset-name">中煎り</span><span class="preset-meta">90℃ · 1:16.0</span>
+          </button>
+          <button type="button" class="preset" data-preset="dark" aria-pressed="false" title="深煎り・コクと甘苦さ">
+            <span class="preset-name">深煎り</span><span class="preset-meta">85℃ · 1:14.4</span>
+          </button>
+          <button type="button" class="preset" data-preset="iced" aria-pressed="false" title="急冷アイス用・濃いめ">
+            <span class="preset-name">アイス</span><span class="preset-meta">91℃ · 1:10.0</span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main class="layout">
+      <!-- Recipe card -->
+      <section class="recipe" aria-labelledby="recipeTitle">
+        <div class="recipe-head">
+          <div>
+            <span class="en">Recipe</span>
+            <h2 id="recipeTitle">レシピ</h2>
+          </div>
+          <div class="ratio">
+            <span class="ratio-label">粉 : 湯</span>
+            <span class="ratio-val" id="ratioBadge">1 : 16.0</span>
+          </div>
+        </div>
+
+        <div class="beans">
+          <div class="field">
+            <label class="field-label" for="doseInput">粉の量</label>
+            <div class="stepper">
+              <button type="button" data-step="-1" aria-label="粉を1g減らす">−</button>
+              <div class="stepper-input">
+                <input type="number" id="doseInput" min="10" max="35" step="1" value="15" inputmode="numeric" />
+                <span class="unit">g</span>
+              </div>
+              <button type="button" data-step="1" aria-label="粉を1g増やす">+</button>
+            </div>
+          </div>
+          <fieldset class="field">
+            <legend class="field-label">焙煎度</legend>
+            <div class="segmented">
+              <input type="radio" name="roast" id="roastLight" value="light" /><label for="roastLight">浅煎り</label>
+              <input type="radio" name="roast" id="roastMedium" value="medium" checked /><label for="roastMedium">中煎り</label>
+              <input type="radio" name="roast" id="roastDark" value="dark" /><label for="roastDark">深煎り</label>
+            </div>
+          </fieldset>
+        </div>
+
+        <div class="dials">
+          <div class="dial">
+            <div class="dial-top">
+              <label for="waterSlider">湯量</label>
+              <span class="dial-value"><span id="waterVal">240</span><small>ml</small></span>
+            </div>
+            <input type="range" id="waterSlider" min="150" max="450" step="5" value="240" />
+            <div class="ticks" aria-hidden="true">
+              <span class="start" style="--p:0">150<em>濃い</em></span>
+              <span style="--p:0.5">300</span>
+              <span class="end" style="--p:1">450<em>軽い</em></span>
+            </div>
+            <p class="hint">増やすと仕上がり量が増え、味はすっきりする。そのぶん終盤の苦味も出やすい。</p>
+          </div>
+
+          <div class="dial">
+            <div class="dial-top">
+              <label for="tempSlider">湯温</label>
+              <span class="dial-value"><span id="tempVal">90</span><small>℃</small></span>
+            </div>
+            <input type="range" id="tempSlider" min="80" max="98" step="1" value="90" />
+            <div class="ticks" aria-hidden="true">
+              <span class="start" style="--p:0">80<em>まろやか</em></span>
+              <span style="--p:0.5556">90</span>
+              <span class="end" style="--p:1">98<em>力強い</em></span>
+            </div>
+            <p class="hint">高いほど成分がよく溶け、苦味と渋みが出やすい。低いと酸味と甘みが穏やかに残る。</p>
+          </div>
+
+          <div class="dial">
+            <div class="dial-top">
+              <label for="timeSlider">抽出時間</label>
+              <span class="dial-value"><span id="timeVal">2:30</span><small id="timeSecSub">150秒</small></span>
+            </div>
+            <input type="range" id="timeSlider" min="90" max="240" step="5" value="150" />
+            <div class="ticks" aria-hidden="true">
+              <span class="start" style="--p:0">1:30<em>軽快</em></span>
+              <span style="--p:0.4">2:30</span>
+              <span class="end" style="--p:1">4:00<em>重厚</em></span>
+            </div>
+            <p class="hint">酸味は序盤、甘みは中盤、苦味と雑味は終盤に溶け出す。</p>
+            <p class="grind">挽き目の目安 <b id="grindRecommendation">中細挽き</b></p>
+          </div>
+        </div>
+
+        <div class="feedback">
+          <h3>飲んでみて、どうだった？</h3>
+          <p class="feedback-sub">感想を選ぶと、次の一杯に向けてレシピを調整する。</p>
+          <div class="feedback-grid">
+            <button type="button" class="fb" data-feedback="too_sour">
+              <span class="fb-name">酸っぱい・水っぽい</span>
+              <span class="fb-adj"><span>湯温 +2℃</span><span>時間 +15秒</span></span>
+            </button>
+            <button type="button" class="fb" data-feedback="too_bitter">
+              <span class="fb-name">苦い・渋みが残る</span>
+              <span class="fb-adj"><span>湯温 −2℃</span><span>時間 −15秒</span></span>
+            </button>
+            <button type="button" class="fb" data-feedback="too_weak">
+              <span class="fb-name">薄い・物足りない</span>
+              <span class="fb-adj"><span>湯量 −15ml</span><span>時間 +10秒</span></span>
+            </button>
+            <button type="button" class="fb" data-feedback="too_heavy">
+              <span class="fb-name">濃い・重たい</span>
+              <span class="fb-adj"><span>湯量 +15ml</span></span>
+            </button>
+          </div>
+          <p class="nudge-log" id="nudgeLog" aria-live="polite"></p>
+        </div>
+      </section>
+
+      <!-- Results -->
+      <div class="results">
+        <section aria-labelledby="cupTitle">
+          <div class="section-head">
+            <h2 id="cupTitle">この一杯</h2>
+            <span class="en">The Cup</span>
+            <button type="button" class="btn-line" id="saveBtn">このレシピを記録</button>
+          </div>
+
+          <div class="cup-grid">
+            <figure class="carafe" id="carafe" aria-hidden="true">
+              <svg viewBox="0 0 150 172">
+                <defs>
+                  <clipPath id="serverClip">
+                    <path d="M54,62 L94,62 L94,70 C94,80 116,84 116,102 L116,152 C116,160 110,164 102,164 L46,164 C38,164 32,160 32,152 L32,102 C32,84 54,80 54,70 Z" />
+                  </clipPath>
+                </defs>
+                <!-- server glass -->
+                <path class="cf-glass" d="M54,62 L94,62 L94,70 C94,80 116,84 116,102 L116,152 C116,160 110,164 102,164 L46,164 C38,164 32,160 32,152 L32,102 C32,84 54,80 54,70 Z" />
+                <g clip-path="url(#serverClip)">
+                  <g id="liquid" style="transform: translateY(110px)">
+                    <rect id="liquidBody" x="20" y="0" width="110" height="200" fill="hsl(24, 50%, 28%)" />
+                    <rect class="cf-crema" x="20" y="0" width="110" height="1.6" />
+                  </g>
+                </g>
+                <circle class="drop" id="drop" cx="74" cy="64" r="2.2" fill="hsl(24, 50%, 28%)" />
+                <!-- graduations -->
+                <g id="carafeTicks"></g>
+                <path class="cf-line" d="M54,62 L94,62 L94,70 C94,80 116,84 116,102 L116,152 C116,160 110,164 102,164 L46,164 C38,164 32,160 32,152 L32,102 C32,84 54,80 54,70 Z" />
+                <path class="cf-line" d="M116,106 C132,106 136,114 136,126 C136,140 130,146 116,146" />
+                <!-- dripper -->
+                <path class="cf-bed" d="M51,38 L97,38 L86,52 L62,52 Z" />
+                <path class="cf-line" d="M28,12 L120,12" />
+                <path class="cf-line" d="M32,12 L62,52 L86,52 L116,12" />
+                <path class="cf-thin" d="M58,18 L68,46 M74,18 L74,46 M90,18 L80,46" opacity="0.6" />
+                <rect class="cf-line" x="46" y="52" width="56" height="6" rx="1.5" />
+              </svg>
+            </figure>
+
+            <div class="yield">
+              <span class="yield-label">仕上がり量</span>
+              <span class="yield-num"><span id="yieldVal">209</span><small>ml</small></span>
+              <p class="yield-calc">注いだ湯 <span id="simWaterText">240</span> ml<br />− 粉の吸水 <span id="simRetainText">31</span> ml</p>
+            </div>
+
+            <dl class="specs">
+              <div class="spec">
+                <dt>抽出収率</dt>
+                <dd class="spec-val"><span id="eyVal">20.1</span><small>%</small></dd>
+                <dd><span class="chip" id="eyZoneMeta" data-state="ok">適正 18–22%</span></dd>
+              </div>
+              <div class="spec">
+                <dt>濃度 TDS</dt>
+                <dd class="spec-val"><span id="tdsVal">1.38</span><small>%</small></dd>
+                <dd><span class="chip" id="tdsZoneMeta" data-state="ok">標準 1.15–1.45%</span></dd>
+              </div>
+              <div class="spec">
+                <dt>酸味 : 苦味</dt>
+                <dd class="spec-val" id="ratioAcidBitter">52 : 48</dd>
+                <dd><span class="chip" id="balanceTag" data-state="ok">スイートスポット</span></dd>
+              </div>
+            </dl>
+
+            <div class="note" id="diagnosisBox" data-state="ok">
+              <span class="chip">テイスティングノート</span>
+              <p class="note-title" id="diagnosisTitle">甘みを中心に、酸味と苦味が釣り合ったカップ</p>
+              <p class="note-desc" id="diagnosisDesc">収率 20.1%・TDS 1.38%。やわらかな酸味のあとに、豊かな甘みと心地よいほろ苦さが続く。</p>
+            </div>
+          </div>
+        </section>
+
+        <div class="pair">
+          <section aria-labelledby="balanceTitle">
+            <div class="section-head">
+              <h2 id="balanceTitle">味のバランス</h2>
+              <span class="en">Balance</span>
+            </div>
+
+            <div class="spectrum">
+              <div class="spectrum-labels">
+                <span>酸味寄り</span>
+                <span>苦味寄り</span>
+              </div>
+              <div class="spectrum-track">
+                <div class="sweet-zone"><span>スイートスポット</span></div>
+                <div class="pointer" id="spectrumPointer"></div>
+              </div>
+            </div>
+
+            <div class="attrs">
+              <div class="attr">
+                <span class="attr-name">酸味</span>
+                <div class="attr-track"><i id="barAcidity" style="--c: var(--acid)"></i></div>
+                <span class="attr-score" id="scoreAcidity">60</span>
+              </div>
+              <div class="attr">
+                <span class="attr-name">甘み</span>
+                <div class="attr-track"><i id="barSweet" style="--c: var(--sweet)"></i></div>
+                <span class="attr-score" id="scoreSweet">82</span>
+              </div>
+              <div class="attr">
+                <span class="attr-name">苦味</span>
+                <div class="attr-track"><i id="barBitter" style="--c: var(--bitter)"></i></div>
+                <span class="attr-score" id="scoreBitter">55</span>
+              </div>
+              <div class="attr">
+                <span class="attr-name">コク・質感</span>
+                <div class="attr-track"><i id="barBody" style="--c: var(--body)"></i></div>
+                <span class="attr-score" id="scoreBody">65</span>
+              </div>
+              <div class="attr">
+                <span class="attr-name">後味の透明感</span>
+                <div class="attr-track"><i id="barClarity" style="--c: var(--clear)"></i></div>
+                <span class="attr-score" id="scoreClarity">75</span>
+              </div>
+            </div>
+          </section>
+
+          <section aria-labelledby="chartTitle">
+            <div class="section-head">
+              <h2 id="chartTitle">抽出チャート</h2>
+              <span class="en">Brew Control</span>
+            </div>
+            <svg class="chart-svg" id="brewChart" viewBox="0 0 336 232" role="img" aria-label="抽出収率と濃度の位置を示すチャート"></svg>
+            <p class="caption">枠の中が適正範囲（収率 18–22%・濃度 1.15–1.45%）。横に動かすのが湯温と時間、縦に動かすのが湯量と粉の量。</p>
+          </section>
+        </div>
+
+        <section aria-labelledby="pourTitle">
+          <div class="section-head">
+            <h2 id="pourTitle">注ぎ方</h2>
+            <span class="en">Pour Schedule</span>
+            <span class="aside" id="pourSpeedBadge">注ぐ速さの目安 約 2.3 ml/秒</span>
+          </div>
+
+          <div class="pour-grid">
+            <div>
+              <div class="timeline" aria-hidden="true">
+                <div class="timeline-track" id="timelineTrack"></div>
+                <div class="timeline-scale" id="timelineScale"></div>
+              </div>
+              <ol class="steps" id="pourTableBody"></ol>
+            </div>
+
+            <div class="scale" id="scaleBox">
+              <div class="scale-screen">
+                <div class="scale-caps">
+                  <span class="scale-cap"><i class="led"></i>経過</span>
+                  <span class="scale-cap">累計の目標</span>
+                </div>
+                <div class="scale-readout">
+                  <span class="scale-time" id="timerDisplay">0:00</span>
+                  <span class="scale-weight"><span id="timerTarget">—</span><small>g</small></span>
+                </div>
+                <p class="scale-status" id="timerStepBanner" aria-live="polite">スタートを押すと、蒸らしから案内する。</p>
+              </div>
+              <div class="scale-btns">
+                <button type="button" class="btn-brew" id="timerToggleBtn">抽出を始める</button>
+                <button type="button" class="btn-reset" id="timerResetBtn">リセット</button>
+              </div>
+              <p class="scale-foot" id="wakeNote" hidden>抽出中は画面を消灯しない</p>
+            </div>
+          </div>
+        </section>
+
+        <section aria-labelledby="logTitle">
+          <div class="section-head">
+            <h2 id="logTitle">記録</h2>
+            <span class="en">Brew Log</span>
+            <span class="aside" id="logCountBadge">0 件</span>
+          </div>
+          <div id="logContainer"></div>
+          <p class="log-foot">記録はこの端末の中にだけ保存される。ホーム画面のアイコンを削除すると、記録も消える。</p>
+        </section>
+      </div>
+    </main>
+
+    <footer class="colophon">
+      <p>数値は簡易モデルによる目安。豆の鮮度や挽き目、注ぎ方で実際の味は変わる。</p>
+      <p>湯 1 ml ≒ 1 g として計算</p>
+    </footer>
+  </div>
+
+  <dialog class="entry" id="entryDialog" aria-labelledby="entryTitle">
+    <form id="entryForm" novalidate>
+      <div class="entry-head">
+        <h2 id="entryTitle" tabindex="-1" autofocus>この一杯を記録</h2>
+        <span class="entry-date" id="entryDate"></span>
+      </div>
+      <p class="entry-summary" id="entrySummary"></p>
+      <div class="field">
+        <label class="field-label" for="entryBean">豆の名前</label>
+        <input class="text-input" type="text" id="entryBean" maxlength="60" list="beanList" autocomplete="off" placeholder="例：エチオピア イルガチェフェ" />
+        <datalist id="beanList"></datalist>
+      </div>
+      <div class="field">
+        <label class="field-label" for="entryNote">飲んだ感想</label>
+        <textarea class="text-area" id="entryNote" maxlength="400" rows="4" placeholder="香り、甘さ、後味など"></textarea>
+      </div>
+      <div class="entry-btns">
+        <button type="button" class="btn-ghost" id="entryCancel">やめる</button>
+        <button type="submit" class="btn-solid" id="entrySubmit">記録する</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    (() => {
+      "use strict";
+
+      const $ = (id) => document.getElementById(id);
+      const clamp = (val, min, max) => Math.max(min, Math.min(max, val));
+      const formatTime = (sec) => {
+        const m = Math.floor(sec / 60);
+        const s = Math.floor(sec % 60);
+        return m + ":" + String(s).padStart(2, "0");
+      };
+      const h = (v) => String(v ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+      const WEEK = ["日", "月", "火", "水", "木", "金", "土"];
+      const formatDate = (d) => {
+        if (!(d instanceof Date) || isNaN(d)) return "";
+        const p = (n) => String(n).padStart(2, "0");
+        return `${d.getFullYear()}.${p(d.getMonth() + 1)}.${p(d.getDate())}（${WEEK[d.getDay()]}）${p(d.getHours())}:${p(d.getMinutes())}`;
+      };
+      const reduceMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+      /* ---------- 端末内の保存 ---------- */
+      const STORE_PREFIX = "hand-drip-dial-in:v1:";
+      const store = {
+        read(key, fallback) {
+          try {
+            const raw = localStorage.getItem(STORE_PREFIX + key);
+            return raw ? JSON.parse(raw) : fallback;
+          } catch (e) {
+            return fallback;
+          }
+        },
+        write(key, value) {
+          try {
+            localStorage.setItem(STORE_PREFIX + key, JSON.stringify(value));
+            return true;
+          } catch (e) {
+            return false;
+          }
+        }
+      };
+
+      const PRESETS = {
+        light:    { dose: 15, roast: "light",  water: 250, temp: 93, time: 140 },
+        balanced: { dose: 15, roast: "medium", water: 240, temp: 90, time: 150 },
+        dark:     { dose: 16, roast: "dark",   water: 230, temp: 85, time: 165 },
+        iced:     { dose: 18, roast: "medium", water: 180, temp: 91, time: 145 }
+      };
+      const LIMITS = { dose: [10, 35], water: [150, 450], temp: [80, 98], time: [90, 240] };
+      const ROAST_LABEL = { light: "浅煎り", medium: "中煎り", dark: "深煎り" };
+
+      const els = {
+        water: $("waterSlider"),
+        temp: $("tempSlider"),
+        time: $("timeSlider"),
+        dose: $("doseInput")
+      };
+
+      let elapsedSec = 0;
+      let currentSteps = [];
+      let current = null;
+      let savedLogs = loadLogs();
+      const timer = { running: false, startAt: 0, accMs: 0, tickId: null };
+      let wakeLock = null;
+
+      const getRoast = () => document.querySelector('input[name="roast"]:checked').value;
+      const setRoast = (v) => {
+        const r = document.querySelector('input[name="roast"][value="' + v + '"]');
+        if (r) r.checked = true;
+      };
+
+      const paintRange = (el) => {
+        const p = ((el.value - el.min) / (el.max - el.min)) * 100;
+        el.style.setProperty("--fill", p + "%");
+      };
+
+      /* ---------- レシピの保存と復元 ---------- */
+      function readRecipe() {
+        return {
+          dose: Number(els.dose.value), roast: getRoast(),
+          water: Number(els.water.value), temp: Number(els.temp.value), time: Number(els.time.value)
+        };
+      }
+
+      function applyRecipe(r) {
+        if (!r || typeof r !== "object") return false;
+        const num = (v, [lo, hi]) => (Number.isFinite(Number(v)) && v !== null && v !== "" ? clamp(Number(v), lo, hi) : null);
+        const dose = num(r.dose, LIMITS.dose);
+        const water = num(r.water, LIMITS.water);
+        const temp = num(r.temp, LIMITS.temp);
+        const time = num(r.time, LIMITS.time);
+        if ([dose, water, temp, time].some((v) => v === null)) return false;
+        els.dose.value = Math.round(dose);
+        els.water.value = water;
+        els.temp.value = temp;
+        els.time.value = time;
+        if (ROAST_LABEL[r.roast]) setRoast(r.roast);
+        return true;
+      }
+
+      let recipeSaveTimer = null;
+      const saveRecipeNow = () => { clearTimeout(recipeSaveTimer); store.write("recipe", readRecipe()); };
+      const saveRecipeSoon = () => { clearTimeout(recipeSaveTimer); recipeSaveTimer = setTimeout(saveRecipeNow, 300); };
+
+      /* ---------- Brew control chart ---------- */
+      const CH = { x0: 48, x1: 324, y0: 16, y1: 192, eyMin: 14, eyMax: 26, tdsMin: 0.8, tdsMax: 1.9 };
+      const sx = (ey) => CH.x0 + ((ey - CH.eyMin) / (CH.eyMax - CH.eyMin)) * (CH.x1 - CH.x0);
+      const sy = (tds) => CH.y1 - ((tds - CH.tdsMin) / (CH.tdsMax - CH.tdsMin)) * (CH.y1 - CH.y0);
+
+      function buildChart() {
+        const p = [];
+        const ht = CH.y1 - CH.y0;
+        p.push(`<rect class="c-under" x="${sx(14)}" y="${CH.y0}" width="${sx(18) - sx(14)}" height="${ht}"/>`);
+        p.push(`<rect class="c-over" x="${sx(22)}" y="${CH.y0}" width="${sx(26) - sx(22)}" height="${ht}"/>`);
+        [16, 18, 20, 22, 24, 26].forEach((v) => p.push(`<line class="c-grid" x1="${sx(v)}" x2="${sx(v)}" y1="${CH.y0}" y2="${CH.y1}"/>`));
+        [1.0, 1.2, 1.4, 1.6, 1.8].forEach((v) => p.push(`<line class="c-grid" x1="${CH.x0}" x2="${CH.x1}" y1="${sy(v)}" y2="${sy(v)}"/>`));
+        p.push(`<rect class="c-ideal" x="${sx(18)}" y="${sy(1.45)}" width="${sx(22) - sx(18)}" height="${sy(1.15) - sy(1.45)}"/>`);
+        p.push(`<line class="c-axis" x1="${CH.x0}" x2="${CH.x1}" y1="${CH.y1}" y2="${CH.y1}"/>`);
+        p.push(`<line class="c-axis" x1="${CH.x0}" x2="${CH.x0}" y1="${CH.y0}" y2="${CH.y1}"/>`);
+        [14, 16, 18, 20, 22, 24, 26].forEach((v) => p.push(`<text class="c-tick" x="${sx(v)}" y="${CH.y1 + 15}" text-anchor="middle">${v}</text>`));
+        [1.0, 1.2, 1.4, 1.6, 1.8].forEach((v) => p.push(`<text class="c-tick" x="${CH.x0 - 7}" y="${sy(v) + 3.5}" text-anchor="end">${v.toFixed(1)}</text>`));
+        const mid = (a, b) => (sx(a) + sx(b)) / 2;
+        p.push(`<text class="c-zone" x="${mid(14, 18)}" y="${CH.y0 + 16}" text-anchor="middle">抽出不足</text>`);
+        p.push(`<text class="c-zone c-zone-ok" x="${mid(18, 22)}" y="${CH.y0 + 16}" text-anchor="middle">適正</text>`);
+        p.push(`<text class="c-zone" x="${mid(22, 26)}" y="${CH.y0 + 16}" text-anchor="middle">抽出過多</text>`);
+        const cy = (CH.y0 + CH.y1) / 2;
+        p.push(`<text class="c-title" x="${(CH.x0 + CH.x1) / 2}" y="${CH.y1 + 34}" text-anchor="middle">抽出収率（%）</text>`);
+        p.push(`<text class="c-title" x="12" y="${cy}" text-anchor="middle" transform="rotate(-90 12 ${cy})">濃度 TDS（%）</text>`);
+        p.push(`<line class="c-cross" id="crossH"/>`);
+        p.push(`<line class="c-cross" id="crossV"/>`);
+        p.push(`<g class="c-point" id="chartPoint"><circle class="c-halo" r="11"/><circle class="c-dot" r="5"/></g>`);
+        $("brewChart").innerHTML = p.join("");
+      }
+
+      /* ---------- Carafe graduations ---------- */
+      const CF = { bottom: 164, base: 12, span: 66 };
+      const liquidHeight = (ml) => clamp(CF.base + ((ml - 100) / 300) * CF.span, 8, 84);
+
+      function buildCarafeTicks() {
+        $("carafeTicks").innerHTML = [100, 200, 300].map((ml) => {
+          const y = CF.bottom - liquidHeight(ml);
+          return `<line class="cf-tick" x1="32" x2="39" y1="${y}" y2="${y}"/><text class="cf-tick-label" x="27" y="${y + 3}" text-anchor="end">${ml}</text>`;
+        }).join("");
+      }
+
+      /* ---------- Model ---------- */
+      function updateModel() {
+        const water = parseFloat(els.water.value);
+        const temp = parseFloat(els.temp.value);
+        const timeSec = parseFloat(els.time.value);
+        const dose = clamp(parseFloat(els.dose.value) || 15, 8, 40);
+        const roast = getRoast();
+
+        [els.water, els.temp, els.time].forEach(paintRange);
+
+        $("waterVal").textContent = water;
+        $("tempVal").textContent = temp;
+        $("timeVal").textContent = formatTime(timeSec);
+        $("timeSecSub").textContent = timeSec + "秒";
+
+        const ratio = water / dose;
+        $("ratioBadge").textContent = "1 : " + ratio.toFixed(1);
+
+        // 1. 粉の保水量と仕上がり量
+        const roastRetainFactor = roast === "dark" ? 2.15 : (roast === "light" ? 1.98 : 2.05);
+        const drainEfficiency = clamp(1 - (timeSec - 150) * 0.0006, 0.92, 1.06);
+        const retainedWater = Math.round(dose * roastRetainFactor * drainEfficiency);
+        const yieldMl = Math.max(50, Math.round(water - retainedWater));
+
+        $("yieldVal").textContent = yieldMl;
+        $("simWaterText").textContent = water;
+        $("simRetainText").textContent = retainedWater;
+
+        // 2. 抽出収率 (EY) と濃度 (TDS)
+        const ratioEffect = (ratio - 16.0) * 0.42;
+        const tempEffect = (temp - 90.0) * 0.24;
+        const timeEffect = (timeSec - 150.0) * 0.032;
+        const roastSolubleOffset = roast === "dark" ? 0.65 : (roast === "light" ? -0.55 : 0.0);
+        const ey = clamp(20.0 + ratioEffect + tempEffect + timeEffect + roastSolubleOffset, 14.2, 25.8);
+        const tds = clamp(((dose * (ey / 100)) / yieldMl) * 100, 0.75, 2.10);
+
+        $("eyVal").textContent = ey.toFixed(1);
+        $("tdsVal").textContent = tds.toFixed(2);
+
+        // 3. 酸味・甘み・苦味・コク・透明感 (0–100)
+        const roastAcidBase = roast === "light" ? 16 : (roast === "dark" ? -14 : 0);
+        const roastBitterBase = roast === "dark" ? 18 : (roast === "light" ? -12 : 0);
+
+        const acidityScore = Math.round(clamp(58 + roastAcidBase - (timeSec - 150) * 0.21 - (temp - 90) * 0.85 - (ratio - 16) * 1.3, 15, 96));
+        const bitterScore = Math.round(clamp(52 + roastBitterBase + (temp - 90) * 2.35 + (timeSec - 150) * 0.28 + (ratio - 16) * 1.45, 12, 98));
+        const tempPenalty = temp > 94 ? (temp - 94) * 2.5 : (temp < 83 ? (83 - temp) * 1.8 : 0);
+        const sweetScore = Math.round(clamp(88 - Math.abs(ey - 20.1) * 7.8 - tempPenalty, 25, 95));
+        const bodyScore = Math.round(clamp((tds - 0.9) * 75 + (roast === "dark" ? 8 : 0), 20, 96));
+        const clarityScore = Math.round(clamp(85 - Math.max(0, ey - 21.2) * 9 - (tds - 1.35) * 25, 25, 95));
+
+        const acidPct = Math.round((acidityScore / (acidityScore + bitterScore)) * 100);
+        const bitterPct = 100 - acidPct;
+        $("ratioAcidBitter").textContent = acidPct + " : " + bitterPct;
+
+        [["Acidity", acidityScore], ["Sweet", sweetScore], ["Bitter", bitterScore], ["Body", bodyScore], ["Clarity", clarityScore]]
+          .forEach(([key, val]) => {
+            $("bar" + key).style.width = val + "%";
+            $("score" + key).textContent = val;
+          });
+
+        $("spectrumPointer").style.left = clamp(bitterPct, 6, 94) + "%";
+
+        // 見立て
+        let state, tag, title, desc;
+        if (ey < 18.0) {
+          state = "under";
+          tag = "酸味寄り・抽出不足";
+          title = "酸味が前に出た、軽やかなカップ";
+          desc = `収率 ${ey.toFixed(1)}%。甘みが溶け切る前に抽出が終わっている。酸っぱさや物足りなさを感じたら、湯温を上げるか、挽き目を細かくして時間を延ばすと甘みが増す。`;
+        } else if (ey > 22.0 || bitterPct >= 62) {
+          state = "over";
+          tag = "苦味寄り・抽出過多";
+          title = "苦味とコクが重なる、どっしりしたカップ";
+          desc = `収率 ${ey.toFixed(1)}%、酸味 ${acidPct} : 苦味 ${bitterPct}。終盤の苦味までしっかり出ている。ミルクと合わせるならこのままでもよい。渋みや雑味が気になるときは、湯温を 85〜88℃ に下げるか、時間を短くする。`;
+        } else if (acidPct >= 56) {
+          state = "bright";
+          tag = "明るい酸味と甘み";
+          title = "果実のような酸味が先に立つ、華やかなカップ";
+          desc = `収率 ${ey.toFixed(1)}% は適正範囲。酸味（${acidPct}%）が心地よく先導している。シングルオリジンの個性を活かしたいときに向く。`;
+        } else {
+          state = "ok";
+          tag = "スイートスポット";
+          title = "甘みを中心に、酸味と苦味が釣り合ったカップ";
+          desc = `収率 ${ey.toFixed(1)}%・TDS ${tds.toFixed(2)}%。やわらかな酸味のあとに、豊かな甘みと心地よいほろ苦さが続く。`;
+        }
+
+        const balanceTag = $("balanceTag");
+        balanceTag.textContent = tag;
+        balanceTag.dataset.state = state;
+        $("diagnosisBox").dataset.state = state;
+        $("diagnosisTitle").textContent = title;
+        $("diagnosisDesc").textContent = desc;
+
+        const eyState = ey < 18 ? "under" : (ey > 22 ? "over" : "ok");
+        const eyMeta = $("eyZoneMeta");
+        eyMeta.dataset.state = eyState;
+        eyMeta.textContent = eyState === "under" ? "低め・抽出不足ぎみ" : (eyState === "over" ? "高め・抽出過多ぎみ" : "適正 18–22%");
+
+        const tdsState = tds < 1.15 ? "light" : (tds > 1.45 ? "strong" : "ok");
+        const tdsMeta = $("tdsZoneMeta");
+        tdsMeta.dataset.state = tdsState;
+        tdsMeta.textContent = tdsState === "light" ? "薄め・すっきり" : (tdsState === "strong" ? "濃いめ" : "標準 1.15–1.45%");
+
+        $("grindRecommendation").textContent =
+          timeSec < 125 ? "中粗挽き" : (timeSec > 175 ? "細挽き〜中細挽き" : "中細挽き");
+
+        // チャート上の位置
+        const px = clamp(sx(ey), CH.x0 + 4, CH.x1 - 4);
+        const py = clamp(sy(tds), CH.y0 + 4, CH.y1 - 4);
+        $("chartPoint").style.transform = `translate(${px}px, ${py}px)`;
+        const ch = $("crossH");
+        ch.setAttribute("x1", CH.x0); ch.setAttribute("x2", px); ch.setAttribute("y1", py); ch.setAttribute("y2", py);
+        const cv = $("crossV");
+        cv.setAttribute("x1", px); cv.setAttribute("x2", px); cv.setAttribute("y1", py); cv.setAttribute("y2", CH.y1);
+
+        // サーバーの液面と色
+        const top = CF.bottom - liquidHeight(yieldMl);
+        $("liquid").style.transform = `translateY(${top}px)`;
+        const lightness = clamp(32 - (tds - 1.0) * 14 - (bitterPct - 50) * 0.15, 14, 38);
+        const liquidColor = `hsl(24, 50%, ${lightness}%)`;
+        $("liquidBody").style.fill = liquidColor;
+        const drop = $("drop");
+        drop.style.fill = liquidColor;
+        drop.style.setProperty("--fall", Math.max(0, top - 66) + "px");
+
+        current = {
+          roast, dose, water, temp, time: timeSec,
+          yieldMl, acidPct, bitterPct,
+          ey: ey.toFixed(1), tds: tds.toFixed(2),
+          tag, state
+        };
+
+        buildPourSchedule(water, dose, timeSec, temp);
+        syncPresets();
+        saveRecipeSoon();
+      }
+
+      /* ---------- Pour schedule ---------- */
+      function buildPourSchedule(water, dose, timeSec, temp) {
+        const bloomWater = Math.min(Math.round(dose * 2.2), Math.round(water * 0.22));
+        const remaining = water - bloomWater;
+        const pour1 = Math.round(remaining * 0.38);
+        const pour2 = Math.round(remaining * 0.34);
+        const pour3 = remaining - pour1 - pour2;
+
+        const bloomEnd = clamp(Math.round(timeSec * 0.24), 30, 45);
+        const p1End = Math.round(bloomEnd + (timeSec - bloomEnd) * 0.33);
+        const p2End = Math.round(bloomEnd + (timeSec - bloomEnd) * 0.66);
+        const p3End = timeSec;
+
+        currentSteps = [
+          { name: "蒸らし", short: "蒸らし", start: 0, end: bloomEnd, add: bloomWater, cum: bloomWater,
+            note: `粉全体を湿らせ、ガスを抜く。湯は ${temp}℃。` },
+          { name: "一投目", short: "一投目", start: bloomEnd, end: p1End, add: pour1, cum: bloomWater + pour1,
+            note: "中心から小さく円を描いて注ぐ。酸味と香りが出てくる。" },
+          { name: "二投目", short: "二投目", start: p1End, end: p2End, add: pour2, cum: bloomWater + pour1 + pour2,
+            note: "水位を保ちながら注ぐ。甘みとコクが重なっていく。" },
+          { name: "三投目と落ち切り", short: "三投目", start: p2End, end: p3End, add: pour3, cum: water,
+            note: `${formatTime(p3End)} でドリッパーを外す。長引くと苦味と渋みが増える。` }
+        ];
+
+        $("pourTableBody").innerHTML = currentSteps.map((st, i) => `
+          <li class="step" id="stepRow_${i}">
+            <span class="step-no">${i + 1}</span>
+            <div class="step-main">
+              <div class="step-title">
+                <span class="step-name">${st.name}</span>
+                <span class="step-time">${formatTime(st.start)}–${formatTime(st.end)}</span>
+              </div>
+              <span class="step-note">${st.note}</span>
+            </div>
+            <span class="step-pour">+${st.add} ml<small>計 ${st.cum} ml</small></span>
+          </li>`).join("");
+
+        $("timelineTrack").innerHTML =
+          currentSteps.map((st, i) => `<div class="tl-seg" id="tlSeg_${i}" style="--d:${st.end - st.start}">${st.short}</div>`).join("") +
+          `<div class="timeline-progress" id="timelineProgress"></div>`;
+        $("timelineScale").innerHTML =
+          currentSteps.map((st) => `<span style="--d:${st.end - st.start}">${formatTime(st.start)}</span>`).join("") +
+          `<span class="tl-end">${formatTime(p3End)}</span>`;
+
+        const flowRate = (water / (timeSec * 0.7)).toFixed(1);
+        $("pourSpeedBadge").textContent = `注ぐ速さの目安 約 ${flowRate} ml/秒`;
+        highlightActiveTimerStep(true);
+      }
+
+      /* ---------- Presets ---------- */
+      function applyPreset(key) {
+        if (!applyRecipe(PRESETS[key])) return;
+        $("nudgeLog").textContent = "";
+        updateModel();
+      }
+
+      function syncPresets() {
+        const cur = readRecipe();
+        document.querySelectorAll(".preset").forEach((btn) => {
+          const p = PRESETS[btn.dataset.preset];
+          const match = Object.keys(p).every((k) => p[k] === cur[k]);
+          btn.setAttribute("aria-pressed", match ? "true" : "false");
+        });
+      }
+
+      /* ---------- Taste feedback ---------- */
+      const FEEDBACK = {
+        too_sour:   { temp: 2, time: 15 },
+        too_bitter: { temp: -2, time: -15 },
+        too_weak:   { water: -15, time: 10 },
+        too_heavy:  { water: 15 }
+      };
+
+      function nudgeRecipe(key) {
+        const d = FEEDBACK[key];
+        if (!d) return;
+        const before = readRecipe();
+        if (d.water) els.water.value = clamp(before.water + d.water, ...LIMITS.water);
+        if (d.temp) els.temp.value = clamp(before.temp + d.temp, ...LIMITS.temp);
+        if (d.time) els.time.value = clamp(before.time + d.time, ...LIMITS.time);
+        const after = readRecipe();
+
+        const changes = [];
+        if (after.water !== before.water) changes.push(`湯量 ${before.water}→${after.water} ml`);
+        if (after.temp !== before.temp) changes.push(`湯温 ${before.temp}→${after.temp}℃`);
+        if (after.time !== before.time) changes.push(`時間 ${formatTime(before.time)}→${formatTime(after.time)}`);
+        $("nudgeLog").textContent = changes.length
+          ? changes.join("、") + " に調整。"
+          : "スライダーの端に達しているため変更なし。挽き目や粉の量で調整を。";
+        updateModel();
+      }
+
+      /* ---------- Timer（開始時刻から経過を数える） ---------- */
+      const elapsedMs = () => timer.accMs + (timer.running ? Date.now() - timer.startAt : 0);
+      const wakeLimit = () => Number(els.time.value) + 60;
+
+      function tick(force) {
+        const sec = Math.floor(elapsedMs() / 1000);
+        if (sec === elapsedSec && !force) return;
+        elapsedSec = sec;
+        $("timerDisplay").textContent = formatTime(elapsedSec);
+        highlightActiveTimerStep();
+        setRunningState();
+        if (timer.running && elapsedSec >= wakeLimit()) releaseWakeLock();
+      }
+
+      function setRunningState() {
+        const total = Number(els.time.value);
+        $("scaleBox").classList.toggle("is-running", timer.running);
+        $("carafe").classList.toggle("is-brewing", timer.running && elapsedSec < total);
+      }
+
+      function startTimer() {
+        timer.startAt = Date.now();
+        timer.running = true;
+        clearInterval(timer.tickId);
+        timer.tickId = setInterval(tick, 200);
+        $("timerToggleBtn").textContent = "一時停止";
+        tick(true);
+        if (elapsedSec < wakeLimit()) requestWakeLock();
+      }
+
+      function pauseTimer() {
+        timer.accMs = elapsedMs();
+        timer.running = false;
+        clearInterval(timer.tickId);
+        timer.tickId = null;
+        $("timerToggleBtn").textContent = "再開する";
+        releaseWakeLock();
+        setRunningState();
+      }
+
+      const toggleTimer = () => (timer.running ? pauseTimer() : startTimer());
+
+      function resetTimer() {
+        clearInterval(timer.tickId);
+        timer.tickId = null;
+        timer.running = false;
+        timer.accMs = 0;
+        elapsedSec = 0;
+        releaseWakeLock();
+        $("timerDisplay").textContent = "0:00";
+        $("timerTarget").textContent = "—";
+        $("timerToggleBtn").textContent = "抽出を始める";
+        $("timerStepBanner").textContent = "スタートを押すと、蒸らしから案内する。";
+        document.querySelectorAll(".step, .tl-seg").forEach((el) => el.classList.remove("is-active"));
+        const prog = $("timelineProgress");
+        if (prog) prog.style.width = "0%";
+        setRunningState();
+      }
+
+      function highlightActiveTimerStep(instant) {
+        const total = Number(els.time.value);
+        const started = timer.running || elapsedSec > 0;
+        const prog = $("timelineProgress");
+        if (prog) {
+          if (instant) prog.style.transition = "none";
+          prog.style.width = (started ? Math.min(elapsedSec / total, 1) * 100 : 0) + "%";
+          if (instant) requestAnimationFrame(() => { prog.style.transition = ""; });
+        }
+        if (!started) return;
+
+        let matched = null;
+        currentSteps.forEach((st, i) => {
+          const on = elapsedSec >= st.start && elapsedSec < st.end;
+          const row = $("stepRow_" + i);
+          const seg = $("tlSeg_" + i);
+          if (row) row.classList.toggle("is-active", on);
+          if (seg) seg.classList.toggle("is-active", on);
+          if (on) matched = st;
+        });
+
+        const banner = $("timerStepBanner");
+        if (elapsedSec >= total) {
+          banner.textContent = "落ち切りの時間。ドリッパーを外す。";
+          $("timerTarget").textContent = currentSteps[currentSteps.length - 1].cum;
+        } else if (matched) {
+          banner.textContent = `${matched.name}。累計 ${matched.cum} g まで注ぐ。`;
+          $("timerTarget").textContent = matched.cum;
+        } else {
+          banner.textContent = "抽出中";
+        }
+      }
+
+      /* ---------- 抽出中は画面を消灯しない ---------- */
+      async function requestWakeLock() {
+        if (wakeLock || !("wakeLock" in navigator) || document.visibilityState !== "visible") return;
+        try {
+          const lock = await navigator.wakeLock.request("screen");
+          if (!timer.running || wakeLock) {
+            lock.release().catch(() => {});
+            return;
+          }
+          wakeLock = lock;
+          $("wakeNote").hidden = false;
+          lock.addEventListener("release", () => {
+            if (wakeLock === lock) {
+              wakeLock = null;
+              $("wakeNote").hidden = true;
+            }
+          });
+        } catch (e) {
+          wakeLock = null;
+        }
+      }
+
+      function releaseWakeLock() {
+        const lock = wakeLock;
+        wakeLock = null;
+        $("wakeNote").hidden = true;
+        if (lock) lock.release().catch(() => {});
+      }
+
+      document.addEventListener("visibilitychange", () => {
+        if (document.visibilityState === "visible") {
+          if (timer.running) {
+            tick(true);
+            if (elapsedSec < wakeLimit()) requestWakeLock();
+          }
+        } else {
+          saveRecipeNow();
+        }
+      });
+      window.addEventListener("pagehide", saveRecipeNow);
+
+      /* ---------- Toast ---------- */
+      let toastTimer = null;
+      function toast(msg) {
+        const t = $("toast");
+        t.textContent = msg;
+        t.classList.add("is-on");
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => t.classList.remove("is-on"), 2400);
+      }
+
+      /* ---------- 記録 ---------- */
+      function loadLogs() {
+        const raw = store.read("logs", []);
+        if (!Array.isArray(raw)) return [];
+        return raw.filter((it) => it && typeof it.id === "string" && typeof it.createdAt === "string");
+      }
+
+      function persistLogs() {
+        const ok = store.write("logs", savedLogs);
+        if (!ok) toast("記録を端末に保存できなかった。ブラウザのデータ保存が制限されている可能性がある。");
+        return ok;
+      }
+
+      const newId = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+
+      const snapshot = (c) => ({
+        roast: c.roast, dose: c.dose, water: c.water, temp: c.temp, time: c.time,
+        yieldMl: c.yieldMl, acidPct: c.acidPct, bitterPct: c.bitterPct,
+        ey: c.ey, tds: c.tds, tag: c.tag, state: c.state
+      });
+
+      const recipeLine = (it) =>
+        `${h(ROAST_LABEL[it.roast] || "")} · ${h(it.dose)} g · ${h(it.water)} ml · ${h(it.temp)}℃ · ${h(formatTime(Number(it.time) || 0))}` +
+        `<span class="arrow">→</span><b>${h(it.yieldMl)} ml</b>`;
+
+      function renderLogs() {
+        $("logCountBadge").textContent = savedLogs.length + " 件";
+        const container = $("logContainer");
+        if (savedLogs.length === 0) {
+          container.innerHTML = `<p class="empty">「このレシピを記録」を押すと、豆の名前や感想と一緒にここへ残る。条件を変えながら比べられる。</p>`;
+          return;
+        }
+        container.innerHTML = `<ul class="log-list">${savedLogs.map((it) => `
+          <li class="log-item" data-id="${h(it.id)}">
+            <div class="log-head">
+              <p class="log-bean${it.bean ? "" : " is-empty"}">${it.bean ? h(it.bean) : "豆の名前なし"}</p>
+              <time class="log-date" datetime="${h(it.createdAt)}">${h(formatDate(new Date(it.createdAt)))}</time>
+            </div>
+            <p class="log-recipe">${recipeLine(it)}</p>
+            <p class="log-result">
+              <span class="chip" data-state="${h(it.state)}">${h(it.tag)}</span>
+              <span class="nums">収率 ${h(it.ey)}% · TDS ${h(it.tds)}% · 酸味 ${h(it.acidPct)} : 苦味 ${h(it.bitterPct)}</span>
+            </p>
+            ${it.note ? `<p class="log-note">${h(it.note)}</p>` : ""}
+            <div class="log-actions">
+              <button type="button" class="link-btn" data-act="use">このレシピで淹れる</button>
+              <button type="button" class="link-btn" data-act="edit">メモを編集</button>
+              <button type="button" class="link-btn" data-act="delete">削除</button>
+            </div>
+          </li>`).join("")}</ul>`;
+      }
+
+      /* 記録・メモ編集のダイアログ */
+      const dlg = $("entryDialog");
+      let editingId = null;
+
+      function openEntry(item) {
+        editingId = item ? item.id : null;
+        const src = item || current;
+        $("entryTitle").textContent = item ? "メモを編集" : "この一杯を記録";
+        $("entryDate").textContent = formatDate(item ? new Date(item.createdAt) : new Date());
+        $("entrySummary").innerHTML =
+          recipeLine(src) + `<br />${h(src.tag)} · 収率 ${h(src.ey)}% · TDS ${h(src.tds)}%`;
+        $("entryBean").value = item ? (item.bean || "") : ((savedLogs[0] && savedLogs[0].bean) || "");
+        $("entryNote").value = item ? (item.note || "") : "";
+        $("entrySubmit").textContent = item ? "保存する" : "記録する";
+
+        const beans = [...new Set(savedLogs.map((x) => x.bean).filter(Boolean))].slice(0, 30);
+        $("beanList").innerHTML = beans.map((b) => `<option value="${h(b)}"></option>`).join("");
+
+        if (typeof dlg.showModal === "function") {
+          dlg.showModal();
+          $("entryTitle").focus();
+        } else {
+          dlg.setAttribute("open", "");
+        }
+      }
+
+      function closeEntry() {
+        if (typeof dlg.close === "function") dlg.close();
+        else dlg.removeAttribute("open");
+      }
+
+      $("entryForm").addEventListener("submit", (e) => {
+        e.preventDefault();
+        const bean = $("entryBean").value.trim().slice(0, 60);
+        const note = $("entryNote").value.trim().slice(0, 400);
+        const isEdit = editingId !== null;
+        if (isEdit) {
+          const it = savedLogs.find((x) => x.id === editingId);
+          if (it) { it.bean = bean; it.note = note; }
+        } else if (current) {
+          savedLogs.unshift(Object.assign({ id: newId(), createdAt: new Date().toISOString(), bean, note }, snapshot(current)));
+        }
+        const ok = persistLogs();
+        renderLogs();
+        closeEntry();
+        if (ok) toast(isEdit ? "メモを保存した" : "記録した");
+      });
+      $("entryCancel").addEventListener("click", closeEntry);
+      dlg.addEventListener("click", (e) => { if (e.target === dlg) closeEntry(); });
+
+      /* 記録ごとの操作 */
+      $("logContainer").addEventListener("click", (e) => {
+        const btn = e.target.closest("button[data-act]");
+        if (!btn) return;
+        const id = btn.closest(".log-item").dataset.id;
+        const item = savedLogs.find((x) => x.id === id);
+        if (!item) return;
+
+        if (btn.dataset.act === "use") {
+          if (!applyRecipe(item)) return;
+          $("nudgeLog").textContent = "";
+          updateModel();
+          document.querySelector(".recipe").scrollIntoView({ behavior: reduceMotion() ? "auto" : "smooth", block: "start" });
+          toast(`${item.bean || formatDate(new Date(item.createdAt))} のレシピを読み込んだ`);
+        } else if (btn.dataset.act === "edit") {
+          openEntry(item);
+        } else if (btn.dataset.act === "delete") {
+          if (btn.classList.contains("is-armed")) {
+            savedLogs = savedLogs.filter((x) => x.id !== id);
+            const ok = persistLogs();
+            renderLogs();
+            if (ok) toast("記録を削除した");
+          } else {
+            btn.classList.add("is-armed");
+            btn.textContent = "もう一度押すと削除";
+            setTimeout(() => {
+              if (btn.isConnected) {
+                btn.classList.remove("is-armed");
+                btn.textContent = "削除";
+              }
+            }, 3000);
+          }
+        }
+      });
+
+      /* ---------- Wiring ---------- */
+      [els.water, els.temp, els.time].forEach((el) => el.addEventListener("input", updateModel));
+      els.dose.addEventListener("input", updateModel);
+      els.dose.addEventListener("change", () => {
+        els.dose.value = clamp(Math.round(parseFloat(els.dose.value) || 15), ...LIMITS.dose);
+        updateModel();
+      });
+      document.querySelectorAll('input[name="roast"]').forEach((r) => r.addEventListener("change", updateModel));
+      document.querySelectorAll(".stepper button").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const next = (parseFloat(els.dose.value) || 15) + Number(btn.dataset.step);
+          els.dose.value = clamp(next, ...LIMITS.dose);
+          updateModel();
+        });
+      });
+      document.querySelectorAll(".preset").forEach((btn) => btn.addEventListener("click", () => applyPreset(btn.dataset.preset)));
+      document.querySelectorAll(".fb").forEach((btn) => btn.addEventListener("click", () => nudgeRecipe(btn.dataset.feedback)));
+      $("saveBtn").addEventListener("click", () => openEntry(null));
+      $("timerToggleBtn").addEventListener("click", toggleTimer);
+      $("timerResetBtn").addEventListener("click", resetTimer);
+
+      /* ---------- Start ---------- */
+      applyRecipe(store.read("recipe", null));
+      buildChart();
+      buildCarafeTicks();
+      renderLogs();
+      updateModel();
+      requestAnimationFrame(() => requestAnimationFrame(() => $("brewChart").classList.add("chart-ready")));
+
+      if ("serviceWorker" in navigator && /^https?:$/.test(location.protocol)) {
+        window.addEventListener("load", () => {
+          navigator.serviceWorker.register("./sw.js").catch(() => {});
+        });
+      }
+      if (navigator.storage && typeof navigator.storage.persist === "function") {
+        navigator.storage.persist().catch(() => {});
+      }
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,17 @@
+{
+  "name": "ハンドドリップ ダイヤルイン",
+  "short_name": "ダイヤルイン",
+  "description": "湯量・湯温・抽出時間を動かして、一杯の味のバランスを探る。淹れた記録は端末に残る。",
+  "lang": "ja",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#ece6db",
+  "theme_color": "#ece6db",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
