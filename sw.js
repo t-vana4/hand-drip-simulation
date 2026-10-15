@@ -3,7 +3,7 @@
  * アプリ本体（index.html）は「通信できれば最新、できなければ保存済み」で返す。
  * アイコンなどの静的ファイルを差し替えたときは VERSION を上げる。
  */
-const VERSION = "v1";
+const VERSION = "v2";
 const APP_CACHE = "hand-drip-app-" + VERSION;
 const FONT_CACHE = "hand-drip-fonts";
 const FONT_LIMIT = 160;

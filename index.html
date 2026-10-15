@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>余白の珈琲</title>
-  <meta name="description" content="湯量・湯温・抽出時間を動かして、一杯の味のバランスを探る。淹れた記録は端末に残る。" />
+  <meta name="description" content="湯量・湯温・抽出時間・挽き目を動かして、一杯の味のバランスを探る。淹れた記録は端末に残る。" />
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png" />
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
@@ -432,18 +432,10 @@
       letter-spacing: 0.04em;
     }
 
+    /* 段階を呼び名で示す目盛り（挽き目） */
+    .ticks.is-named { font-family: var(--f-body); letter-spacing: 0.04em; }
+
     .hint { margin: 6px 0 0; font-size: 0.8125rem; line-height: 1.7; color: var(--ink-2); }
-
-    .grind {
-      margin: 2px 0 0;
-      font-size: 0.8125rem;
-      color: var(--ink-2);
-      display: flex;
-      gap: 10px;
-      align-items: baseline;
-    }
-
-    .grind b { font-weight: 500; color: var(--ink); }
 
     /* Feedback */
     .feedback {
@@ -1196,7 +1188,7 @@
         <div>
           <span class="en">Hand Drip · Dial-in Simulator</span>
           <h1>余白の珈琲</h1>
-          <p class="lead">湯量と湯温、抽出時間。三つを少しずつ動かして、今日の豆に合う一杯を探す。</p>
+          <p class="lead">湯量と湯温、抽出時間、挽き目。四つを少しずつ動かして、今日の豆に合う一杯を探す。</p>
         </div>
       </div>
 
@@ -1212,7 +1204,7 @@
           <button type="button" class="preset" data-preset="dark" aria-pressed="false" title="深煎り・コクと甘苦さ">
             <span class="preset-name">深煎り</span><span class="preset-meta">85℃ · 1:14.4</span>
           </button>
-          <button type="button" class="preset" data-preset="iced" aria-pressed="false" title="急冷アイス用・濃いめ">
+          <button type="button" class="preset" data-preset="iced" aria-pressed="false" title="急冷アイス用・細挽きで濃いめ">
             <span class="preset-name">アイス</span><span class="preset-meta">91℃ · 1:10.0</span>
           </button>
         </div>
@@ -1296,7 +1288,22 @@
               <span class="end" style="--p:1">4:00<em>重厚</em></span>
             </div>
             <p class="hint">酸味は序盤、甘みは中盤、苦味と雑味は終盤に溶け出す。</p>
-            <p class="grind">挽き目の目安 <b id="grindRecommendation">中細挽き</b></p>
+          </div>
+
+          <div class="dial">
+            <div class="dial-top">
+              <label for="grindSlider">挽き目</label>
+              <span class="dial-value" id="grindVal">中細挽き</span>
+            </div>
+            <input type="range" id="grindSlider" min="1" max="5" step="1" value="2" aria-valuetext="中細挽き" />
+            <div class="ticks is-named" aria-hidden="true">
+              <span style="--p:0">細</span>
+              <span style="--p:0.25">中細</span>
+              <span style="--p:0.5">中</span>
+              <span style="--p:0.75">中粗</span>
+              <span style="--p:1">粗</span>
+            </div>
+            <p class="hint">細かいほど成分がよく溶け、苦味とコクが出やすい。粗いと酸味が残り、後味は軽く澄む。</p>
           </div>
         </div>
 
@@ -1306,11 +1313,11 @@
           <div class="feedback-grid">
             <button type="button" class="fb" data-feedback="too_sour">
               <span class="fb-name">酸っぱい・水っぽい</span>
-              <span class="fb-adj"><span>湯温 +2℃</span><span>時間 +15秒</span></span>
+              <span class="fb-adj"><span>湯温 +2℃</span><span>挽き目 一段細かく</span></span>
             </button>
             <button type="button" class="fb" data-feedback="too_bitter">
               <span class="fb-name">苦い・渋みが残る</span>
-              <span class="fb-adj"><span>湯温 −2℃</span><span>時間 −15秒</span></span>
+              <span class="fb-adj"><span>湯温 −2℃</span><span>挽き目 一段粗く</span></span>
             </button>
             <button type="button" class="fb" data-feedback="too_weak">
               <span class="fb-name">薄い・物足りない</span>
@@ -1449,7 +1456,7 @@
               <span class="en">Brew Control</span>
             </div>
             <svg class="chart-svg" id="brewChart" viewBox="0 0 336 232" role="img" aria-label="抽出収率と濃度の位置を示すチャート"></svg>
-            <p class="caption">枠の中が適正範囲（収率 18–22%・濃度 1.15–1.45%）。横に動かすのが湯温と時間、縦に動かすのが湯量と粉の量。</p>
+            <p class="caption">枠の中が適正範囲（収率 18–22%・濃度 1.15–1.45%）。横に動かすのが湯温・時間・挽き目、縦に動かすのが湯量と粉の量。</p>
           </section>
         </div>
 
@@ -1503,7 +1510,7 @@
     </main>
 
     <footer class="colophon">
-      <p>数値は簡易モデルによる目安。豆の鮮度や挽き目、注ぎ方で実際の味は変わる。</p>
+      <p>数値は簡易モデルによる目安。豆の鮮度やミル、注ぎ方で実際の味は変わる。挽き目の呼び名が指す粗さもミルによって異なる。</p>
       <p>湯 1 ml ≒ 1 g として計算</p>
     </footer>
   </div>
@@ -1575,18 +1582,22 @@
       };
 
       const PRESETS = {
-        light:    { dose: 15, roast: "light",  water: 250, temp: 93, time: 140 },
-        balanced: { dose: 15, roast: "medium", water: 240, temp: 90, time: 150 },
-        dark:     { dose: 16, roast: "dark",   water: 230, temp: 85, time: 165 },
-        iced:     { dose: 18, roast: "medium", water: 180, temp: 91, time: 145 }
+        light:    { dose: 15, roast: "light",  water: 250, temp: 93, time: 140, grind: 2 },
+        balanced: { dose: 15, roast: "medium", water: 240, temp: 90, time: 150, grind: 2 },
+        dark:     { dose: 16, roast: "dark",   water: 230, temp: 85, time: 165, grind: 2 },
+        iced:     { dose: 18, roast: "medium", water: 180, temp: 91, time: 145, grind: 1 }
       };
-      const LIMITS = { dose: [10, 35], water: [150, 450], temp: [80, 98], time: [90, 240] };
+      const LIMITS = { dose: [10, 35], water: [150, 450], temp: [80, 98], time: [90, 240], grind: [1, 5] };
       const ROAST_LABEL = { light: "浅煎り", medium: "中煎り", dark: "深煎り" };
+      const GRIND_LABEL = { 1: "細挽き", 2: "中細挽き", 3: "中挽き", 4: "中粗挽き", 5: "粗挽き" };
+      // モデルの基準となる挽き目（中細挽き）。挽き目を持たない以前の記録もこれとして扱う
+      const BASE_GRIND = 2;
 
       const els = {
         water: $("waterSlider"),
         temp: $("tempSlider"),
         time: $("timeSlider"),
+        grind: $("grindSlider"),
         dose: $("doseInput")
       };
 
@@ -1612,7 +1623,8 @@
       function readRecipe() {
         return {
           dose: Number(els.dose.value), roast: getRoast(),
-          water: Number(els.water.value), temp: Number(els.temp.value), time: Number(els.time.value)
+          water: Number(els.water.value), temp: Number(els.temp.value), time: Number(els.time.value),
+          grind: Number(els.grind.value)
         };
       }
 
@@ -1623,11 +1635,13 @@
         const water = num(r.water, LIMITS.water);
         const temp = num(r.temp, LIMITS.temp);
         const time = num(r.time, LIMITS.time);
+        const grind = num(r.grind, LIMITS.grind) ?? BASE_GRIND;
         if ([dose, water, temp, time].some((v) => v === null)) return false;
         els.dose.value = Math.round(dose);
         els.water.value = water;
         els.temp.value = temp;
         els.time.value = time;
+        els.grind.value = Math.round(grind);
         if (ROAST_LABEL[r.roast]) setRoast(r.roast);
         return true;
       }
@@ -1682,15 +1696,18 @@
         const water = parseFloat(els.water.value);
         const temp = parseFloat(els.temp.value);
         const timeSec = parseFloat(els.time.value);
+        const grind = Number(els.grind.value);
         const dose = clamp(parseFloat(els.dose.value) || 15, 8, 40);
         const roast = getRoast();
 
-        [els.water, els.temp, els.time].forEach(paintRange);
+        [els.water, els.temp, els.time, els.grind].forEach(paintRange);
 
         $("waterVal").textContent = water;
         $("tempVal").textContent = temp;
         $("timeVal").textContent = formatTime(timeSec);
         $("timeSecSub").textContent = timeSec + "秒";
+        $("grindVal").textContent = GRIND_LABEL[grind];
+        els.grind.setAttribute("aria-valuetext", GRIND_LABEL[grind]);
 
         const ratio = water / dose;
         $("ratioBadge").textContent = "1 : " + ratio.toFixed(1);
@@ -1706,11 +1723,14 @@
         $("simRetainText").textContent = retainedWater;
 
         // 2. 抽出収率 (EY) と濃度 (TDS)
+        // 挽き目は中細挽きが基準。一段粗くするごとに +1（細挽きで −1、粗挽きで +3）
+        const grindStep = grind - BASE_GRIND;
         const ratioEffect = (ratio - 16.0) * 0.42;
         const tempEffect = (temp - 90.0) * 0.24;
         const timeEffect = (timeSec - 150.0) * 0.032;
+        const grindEffect = -grindStep * 1.3;
         const roastSolubleOffset = roast === "dark" ? 0.65 : (roast === "light" ? -0.55 : 0.0);
-        const ey = clamp(20.0 + ratioEffect + tempEffect + timeEffect + roastSolubleOffset, 14.2, 25.8);
+        const ey = clamp(20.0 + ratioEffect + tempEffect + timeEffect + grindEffect + roastSolubleOffset, 14.2, 25.8);
         const tds = clamp(((dose * (ey / 100)) / yieldMl) * 100, 0.75, 2.10);
 
         $("eyVal").textContent = ey.toFixed(1);
@@ -1720,12 +1740,13 @@
         const roastAcidBase = roast === "light" ? 16 : (roast === "dark" ? -14 : 0);
         const roastBitterBase = roast === "dark" ? 18 : (roast === "light" ? -12 : 0);
 
-        const acidityScore = Math.round(clamp(58 + roastAcidBase - (timeSec - 150) * 0.21 - (temp - 90) * 0.85 - (ratio - 16) * 1.3, 15, 96));
-        const bitterScore = Math.round(clamp(52 + roastBitterBase + (temp - 90) * 2.35 + (timeSec - 150) * 0.28 + (ratio - 16) * 1.45, 12, 98));
+        const acidityScore = Math.round(clamp(58 + roastAcidBase - (timeSec - 150) * 0.21 - (temp - 90) * 0.85 - (ratio - 16) * 1.3 + grindStep * 4.5, 15, 96));
+        const bitterScore = Math.round(clamp(52 + roastBitterBase + (temp - 90) * 2.35 + (timeSec - 150) * 0.28 + (ratio - 16) * 1.45 - grindStep * 5, 12, 98));
         const tempPenalty = temp > 94 ? (temp - 94) * 2.5 : (temp < 83 ? (83 - temp) * 1.8 : 0);
         const sweetScore = Math.round(clamp(88 - Math.abs(ey - 20.1) * 7.8 - tempPenalty, 25, 95));
-        const bodyScore = Math.round(clamp((tds - 0.9) * 75 + (roast === "dark" ? 8 : 0), 20, 96));
-        const clarityScore = Math.round(clamp(85 - Math.max(0, ey - 21.2) * 9 - (tds - 1.35) * 25, 25, 95));
+        // 細かい粉は微粉が増えてコクが出るぶん、後味は濁りやすい
+        const bodyScore = Math.round(clamp((tds - 0.9) * 75 + (roast === "dark" ? 8 : 0) - grindStep * 3, 20, 96));
+        const clarityScore = Math.round(clamp(85 - Math.max(0, ey - 21.2) * 9 - (tds - 1.35) * 25 + grindStep * 4, 25, 95));
 
         const acidPct = Math.round((acidityScore / (acidityScore + bitterScore)) * 100);
         const bitterPct = 100 - acidPct;
@@ -1745,12 +1766,14 @@
           state = "under";
           tag = "酸味寄り・抽出不足";
           title = "酸味が前に出た、軽やかなカップ";
-          desc = `収率 ${ey.toFixed(1)}%。甘みが溶け切る前に抽出が終わっている。酸っぱさや物足りなさを感じたら、湯温を上げるか、挽き目を細かくして時間を延ばすと甘みが増す。`;
+          const fix = grind > LIMITS.grind[0] ? "挽き目を一段細かくするか、湯温を上げる" : "湯温を上げるか、時間を延ばす";
+          desc = `収率 ${ey.toFixed(1)}%。甘みが溶け切る前に抽出が終わっている。酸っぱさや物足りなさを感じたら、${fix}と甘みが増す。`;
         } else if (ey > 22.0 || bitterPct >= 62) {
           state = "over";
           tag = "苦味寄り・抽出過多";
           title = "苦味とコクが重なる、どっしりしたカップ";
-          desc = `収率 ${ey.toFixed(1)}%、酸味 ${acidPct} : 苦味 ${bitterPct}。終盤の苦味までしっかり出ている。ミルクと合わせるならこのままでもよい。渋みや雑味が気になるときは、湯温を 85〜88℃ に下げるか、時間を短くする。`;
+          const fix = grind < LIMITS.grind[1] ? "挽き目を一段粗くするか、湯温を 85〜88℃ に下げる" : "湯温を 85〜88℃ に下げるか、時間を短くする";
+          desc = `収率 ${ey.toFixed(1)}%、酸味 ${acidPct} : 苦味 ${bitterPct}。終盤の苦味までしっかり出ている。ミルクと合わせるならこのままでもよい。渋みや雑味が気になるときは、${fix}。`;
         } else if (acidPct >= 56) {
           state = "bright";
           tag = "明るい酸味と甘み";
@@ -1780,9 +1803,6 @@
         tdsMeta.dataset.state = tdsState;
         tdsMeta.textContent = tdsState === "light" ? "薄め・すっきり" : (tdsState === "strong" ? "濃いめ" : "標準 1.15–1.45%");
 
-        $("grindRecommendation").textContent =
-          timeSec < 125 ? "中粗挽き" : (timeSec > 175 ? "細挽き〜中細挽き" : "中細挽き");
-
         // チャート上の位置
         const px = clamp(sx(ey), CH.x0 + 4, CH.x1 - 4);
         const py = clamp(sy(tds), CH.y0 + 4, CH.y1 - 4);
@@ -1803,7 +1823,7 @@
         drop.style.setProperty("--fall", Math.max(0, top - 66) + "px");
 
         current = {
-          roast, dose, water, temp, time: timeSec,
+          roast, dose, water, temp, time: timeSec, grind,
           yieldMl, acidPct, bitterPct,
           ey: ey.toFixed(1), tds: tds.toFixed(2),
           tag, state
@@ -1881,8 +1901,8 @@
 
       /* ---------- Taste feedback ---------- */
       const FEEDBACK = {
-        too_sour:   { temp: 2, time: 15 },
-        too_bitter: { temp: -2, time: -15 },
+        too_sour:   { temp: 2, grind: -1 },
+        too_bitter: { temp: -2, grind: 1 },
         too_weak:   { water: -15, time: 10 },
         too_heavy:  { water: 15 }
       };
@@ -1894,15 +1914,17 @@
         if (d.water) els.water.value = clamp(before.water + d.water, ...LIMITS.water);
         if (d.temp) els.temp.value = clamp(before.temp + d.temp, ...LIMITS.temp);
         if (d.time) els.time.value = clamp(before.time + d.time, ...LIMITS.time);
+        if (d.grind) els.grind.value = clamp(before.grind + d.grind, ...LIMITS.grind);
         const after = readRecipe();
 
         const changes = [];
         if (after.water !== before.water) changes.push(`湯量 ${before.water}→${after.water} ml`);
         if (after.temp !== before.temp) changes.push(`湯温 ${before.temp}→${after.temp}℃`);
         if (after.time !== before.time) changes.push(`時間 ${formatTime(before.time)}→${formatTime(after.time)}`);
+        if (after.grind !== before.grind) changes.push(`挽き目 ${GRIND_LABEL[before.grind]}→${GRIND_LABEL[after.grind]}`);
         $("nudgeLog").textContent = changes.length
           ? changes.join("、") + " に調整。"
-          : "スライダーの端に達しているため変更なし。挽き目や粉の量で調整を。";
+          : "スライダーの端に達しているため変更なし。ほかの項目や粉の量で調整を。";
         updateModel();
       }
 
@@ -2065,13 +2087,15 @@
       const newId = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
 
       const snapshot = (c) => ({
-        roast: c.roast, dose: c.dose, water: c.water, temp: c.temp, time: c.time,
+        roast: c.roast, dose: c.dose, water: c.water, temp: c.temp, time: c.time, grind: c.grind,
         yieldMl: c.yieldMl, acidPct: c.acidPct, bitterPct: c.bitterPct,
         ey: c.ey, tds: c.tds, tag: c.tag, state: c.state
       });
 
+      // 挽き目を持たない以前の記録では、挽き目を表示しない
       const recipeLine = (it) =>
         `${h(ROAST_LABEL[it.roast] || "")} · ${h(it.dose)} g · ${h(it.water)} ml · ${h(it.temp)}℃ · ${h(formatTime(Number(it.time) || 0))}` +
+        (GRIND_LABEL[it.grind] ? ` · ${h(GRIND_LABEL[it.grind])}` : "") +
         `<span class="arrow">→</span><b>${h(it.yieldMl)} ml</b>`;
 
       function renderLogs() {
@@ -2187,7 +2211,7 @@
       });
 
       /* ---------- Wiring ---------- */
-      [els.water, els.temp, els.time].forEach((el) => el.addEventListener("input", updateModel));
+      [els.water, els.temp, els.time, els.grind].forEach((el) => el.addEventListener("input", updateModel));
       els.dose.addEventListener("input", updateModel);
       els.dose.addEventListener("change", () => {
         els.dose.value = clamp(Math.round(parseFloat(els.dose.value) || 15), ...LIMITS.dose);
